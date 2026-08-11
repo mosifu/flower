@@ -1,0 +1,33 @@
+#!/bin/sh
+# prepare-commit-msg 钩子（软提醒，不阻断提交）
+# 作用：暂存内容涉及代码改动（miniprogram/ 或 cloudfunctions/）时，
+#       提醒确认已同步更新 docs/修复与优化记录.md。
+#
+# 安装（换机/重新 clone 后执行）：
+#   cp scripts/hooks/prepare-commit-msg .git/hooks/prepare-commit-msg
+#   chmod +x .git/hooks/prepare-commit-msg   # Windows 下 chmod 非必须
+#
+# 说明：仅对未带 message 的交互式提交给出提醒（-m 提交不打扰）。
+#       提醒仅打印提示，不中断提交流程。
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+
+# -m 方式提交不提醒（信息已明确）
+if [ -n "$COMMIT_SOURCE" ]; then
+  exit 0
+fi
+
+# 本次暂存是否包含代码文件
+if git diff --cached --name-only | grep -qE "miniprogram/|cloudfunctions/|scripts/"; then
+  if ! grep -qE "docs:|记录|同步" "$COMMIT_MSG_FILE"; then
+    echo ""
+    echo "⚠️  提醒：本次提交涉及代码改动。"
+    echo "   请确认已同步更新 docs/修复与优化记录.md（问题/改动/验证）；"
+    echo "   涉及接口或数据结构还需更新 docs/技术文档.md 与 docs/SCHEMA.md。"
+    echo "   如本提交不需要记录（纯文档/配置），可忽略此提醒。"
+    echo ""
+  fi
+fi
+
+exit 0

@@ -26,6 +26,14 @@
 - 密钥只放云函数环境变量，禁止硬编码进前端或提交到仓库。
 - 数据库集合与字段定义见 `docs/SCHEMA.md`，改动需同步更新文档。
 
+## 提交规范（强制）
+
+- **修复/优化必须留痕**：修改代码（`miniprogram/` 或 `cloudfunctions/`）后，必须在 `docs/修复与优化记录.md` 追加批次记录（问题、改动、验证）；涉及接口/数据结构同步更新 `docs/技术文档.md` 与 `docs/SCHEMA.md`。提交钩子会在代码改动时提醒。
+- 提交信息用模板：`git config commit.template .gitmessage`（换机/重新 clone 后需重新配置）；钩子安装：`cp scripts/hooks/prepare-commit-msg .git/hooks/`。
+- 提交前跑 `node --check` 校验改动 JS（Python 用 `py_compile`）。
+- 提交账号固定：mosifu `<yidao520521@163.com>`（已配置全局，勿改）。
+- 生成产物不提交：`ids.json`、`miniprogram/images/species/`（插画）、`__pycache__/` 等（见 `.gitignore`）。
+
 ## 其他
 
 - 修改公共逻辑后必须跑一遍语法校验（Node `node --check` / Python `py_compile`）。

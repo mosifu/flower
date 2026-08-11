@@ -1,0 +1,13 @@
+# ============ 提交信息模板（git commit 时自动显示） ============
+# 类型：feat(新功能) / fix(修复) / docs(文档) / refactor(重构) / chore(维护)
+# 格式：<type>: <简述>
+#
+# 示例：
+#   fix: 修复识别超时（recognizeFlower 控制台超时改为 20s）
+#   feat: 图鉴新增稀有度排序
+#
+# ——— 提交前检查清单（确认后删除本条说明） ———
+# [ ] 修改了代码（miniprogram/ 或 cloudfunctions/）？
+#     是 → 必须已在 docs/修复与优化记录.md 追加批次记录（问题/改动/验证）
+# [ ] 修改了接口或数据结构？是 → docs/技术文档.md / docs/SCHEMA.md 已同步
+# [ ] 已跑过 node --check 语法校验
