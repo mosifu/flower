@@ -43,7 +43,9 @@
   "simulatorPluginLibVersion": {},
   "packOptions": {
     "ignore": [
-      { "type": "folder", "value": "images/species" }
+      { "type": "folder", "value": "images/species" },
+      { "type": "file", "value": "images/avatar-ai.png" },
+      { "type": "file", "value": "images/avatar-ai-v2.png" }
     ],
     "include": []
   }
