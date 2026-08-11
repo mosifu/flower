@@ -1,0 +1,31 @@
+<view class="fc-card {{rarityClass}} {{compact ? 'fc-compact' : ''}}" bindtap="onTap" hover-class="fc-hover">
+  <view class="fc-cover">
+    <image
+      wx:if="{{species.illustrationFileID}}"
+      class="fc-img"
+      src="{{species.illustrationFileID}}"
+      mode="aspectFill"
+      lazy-load="{{true}}"
+    />
+    <view wx:else class="fc-img fc-placeholder">🌷</view>
+
+    <!-- 未收集：插画正常显示，盖灰色半透明层表示未解锁（2026-08-11 调整：全展示 + 灰色覆盖） -->
+    <view wx:if="{{!collected}}" class="fc-lock">
+      <text class="fc-lock-t">未收集</text>
+    </view>
+
+    <view wx:if="{{collected && meetCount > 0}}" class="fc-count">
+      ×{{meetCount}}
+    </view>
+  </view>
+
+  <view class="fc-body">
+    <text class="fc-name {{collected ? '' : 'fc-name-locked'}}">
+      {{species.cnName}}
+    </text>
+    <view class="fc-meta">
+      <text class="badge badge-{{species.rarity}}">{{rarityLabel}}</text>
+      <text wx:if="{{collected && species.latinName}}" class="fc-latin">{{species.latinName}}</text>
+    </view>
+  </view>
+</view>

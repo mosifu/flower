@@ -1,0 +1,12 @@
+node_modules/
+miniprogram_npm/
+.DS_Store
+*.log
+cloudfunctions/**/node_modules/
+project.private.config.json
+__pycache__/
+*.pyc
+# 环境相关的本地产物（含云存储 fileID，按环境生成，不提交）
+ids.json
+# 插画生成产物（60 张约 21.5MB，可用 scripts/seedream_generate.py 重新生成；运行时走云存储 fileID）
+miniprogram/images/species/

@@ -1,0 +1,10 @@
+{
+  "name": "recognizeFlower",
+  "version": "1.0.0",
+  "description": "识花：限流 + 内容安全 + 百度植物识别 + 知识库匹配",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

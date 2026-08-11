@@ -1,0 +1,10 @@
+{
+  "name": "initSpecies",
+  "version": "1.0.0",
+  "description": "导入花卉知识库（幂等）",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

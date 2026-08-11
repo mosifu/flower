@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "随心一拍-花知道",
+  "usingComponents": {
+    "flower-card": "/components/flower-card/flower-card"
+  }
+}

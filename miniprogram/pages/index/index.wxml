@@ -1,0 +1,54 @@
+<!-- 首页：识花入口 + 收集进度 + 最近收获 -->
+<view class="page home">
+  <view class="hero fade-in">
+    <view class="hero-title">🌸 随心一拍</view>
+    <view class="hero-sub">花知道 · 把花收进你的花田</view>
+  </view>
+
+  <view class="actions">
+    <view class="action-main btn-primary" data-source="camera" bindtap="onChoose">📷 拍照识花</view>
+    <view class="action-sub btn-ghost" data-source="album" bindtap="onChoose">🖼 从相册选择</view>
+    <view class="quota muted">
+      今日还可识别 <text class="quota-num">{{todayRemaining}}</text> 次
+    </view>
+  </view>
+
+  <view class="card progress-card" bindtap="goAlbum">
+    <view class="progress-head">
+      <text class="progress-title">我的花田</text>
+      <text class="muted">{{stats.collected}} / {{stats.total}} · {{stats.rate}}%</text>
+    </view>
+    <view class="progress-track">
+      <view class="progress-bar" style="width: {{stats.rate}}%;"></view>
+    </view>
+    <view class="progress-foot muted">
+      <text>等级：{{levelName}}</text>
+      <text>点击查看图鉴 →</text>
+    </view>
+  </view>
+
+  <view class="section-title">最近收获</view>
+  <scroll-view wx:if="{{recentCards.length}}" scroll-x class="recent-scroll">
+    <view class="recent-row">
+      <flower-card
+        wx:for="{{recentCards}}"
+        wx:key="_id"
+        species="{{item}}"
+        collected="{{true}}"
+        meetCount="{{item.meetCount}}"
+        compact="{{true}}"
+      />
+    </view>
+  </scroll-view>
+  <view wx:else class="empty">
+    <text class="empty-icon">🌱</text>
+    <view>还没有收集记录，快去拍第一朵花吧</view>
+    <view class="btn-primary empty-btn" data-source="camera" bindtap="onChoose">去识花</view>
+  </view>
+
+  <view class="section-title">花匠之路</view>
+  <view class="card link-card" bindtap="goAchievements">
+    <text>🏅 查看成就徽章与等级</text>
+    <text class="muted">→</text>
+  </view>
+</view>

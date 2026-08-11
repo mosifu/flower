@@ -1,0 +1,67 @@
+<!-- 图鉴页：统计 + 筛选 + 花卡网格 -->
+<view class="page album">
+  <view class="card stats-card">
+    <view class="stats-row">
+      <view class="stat">
+        <text class="stat-num">{{stats.collected}}</text>
+        <text class="muted">已收集</text>
+      </view>
+      <view class="stat">
+        <text class="stat-num">{{stats.total}}</text>
+        <text class="muted">收录总数</text>
+      </view>
+      <view class="stat">
+        <text class="stat-num">{{stats.rate}}%</text>
+        <text class="muted">收集率</text>
+      </view>
+    </view>
+    <view class="progress-track">
+      <view class="progress-bar" style="width: {{stats.rate}}%;"></view>
+    </view>
+  </view>
+
+  <view class="filter-bar">
+    <view class="status-tabs">
+      <text class="tab {{status === 'all' ? 'tab-active' : ''}}" data-status="all" bindtap="onStatusTap">全部</text>
+      <text class="tab {{status === 'collected' ? 'tab-active' : ''}}" data-status="collected" bindtap="onStatusTap">已收集</text>
+      <text class="tab {{status === 'uncollected' ? 'tab-active' : ''}}" data-status="uncollected" bindtap="onStatusTap">未收集</text>
+    </view>
+    <view class="season-chips">
+      <text class="chip {{season === '' ? 'chip-active' : ''}}" data-season="" bindtap="onSeasonTap">全部花期</text>
+      <text
+        wx:for="{{seasons}}"
+        wx:key="*this"
+        class="chip {{season === item ? 'chip-active' : ''}}"
+        data-season="{{item}}"
+        bindtap="onSeasonTap"
+      >{{item}}</text>
+    </view>
+    <view class="sort-bar">
+      <text class="sort-label muted">排序</text>
+      <view class="sort-chips">
+        <text
+          wx:for="{{sortOptions}}"
+          wx:key="key"
+          class="chip {{sortBy === item.key ? 'chip-active' : ''}}"
+          data-sort="{{item.key}}"
+          bindtap="onSortTap"
+        >{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{list.length}}" class="grid">
+    <flower-card
+      wx:for="{{list}}"
+      wx:key="_id"
+      species="{{item}}"
+      collected="{{item.collected}}"
+      meetCount="{{item.meetCount}}"
+    />
+  </view>
+  <view wx:else class="empty">
+    <text class="empty-icon">🌷</text>
+    <view>{{status === 'uncollected' ? '这一季的花都收集完啦' : '还没有符合条件的记录'}}</view>
+    <view class="btn-primary empty-btn" bindtap="goRecognize">去识花</view>
+  </view>
+</view>

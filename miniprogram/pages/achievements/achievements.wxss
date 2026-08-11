@@ -1,0 +1,116 @@
+/* ===== 成就页样式 ===== */
+.level-card {
+  background: linear-gradient(135deg, #fdfaf1, #f0ead8);
+}
+
+.level-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 20rpx;
+}
+
+.level-name {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #3e7d5c;
+}
+
+.level-count {
+  color: #6f6a5f;
+}
+
+.level-next {
+  margin-top: 14rpx;
+}
+
+.quota-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quota-num {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #3e7d5c;
+}
+
+.rarity-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 18rpx;
+}
+
+.rarity-label {
+  width: 72rpx;
+  flex-shrink: 0;
+}
+
+.rarity-track {
+  flex: 1;
+  height: 16rpx;
+  background: #efe9da;
+  border-radius: 10rpx;
+  overflow: hidden;
+}
+
+.rarity-bar {
+  height: 100%;
+  border-radius: 10rpx;
+}
+
+.rarity-bar-legendary { background: #c9960a; }
+.rarity-bar-epic { background: #9b59b6; }
+.rarity-bar-rare { background: #5b9bd5; }
+.rarity-bar-common { background: #5fae5f; }
+
+.badge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.badge-cell {
+  width: 48%;
+  background: #fffdf7;
+  border-radius: 22rpx;
+  padding: 26rpx 20rpx;
+  margin-bottom: 20rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  box-shadow: 0 6rpx 16rpx rgba(120, 100, 60, 0.08);
+}
+
+.badge-icon {
+  font-size: 64rpx;
+}
+
+.badge-name {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.badge-desc {
+  font-size: 22rpx;
+  color: #8a8374;
+  text-align: center;
+}
+
+.badge-time {
+  font-size: 20rpx;
+  color: #3e7d5c;
+}
+
+.badge-locked {
+  opacity: 0.45;
+  filter: grayscale(80%);
+}
+
+.badge-locked .badge-time {
+  color: #9a948a;
+}

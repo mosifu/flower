@@ -1,0 +1,362 @@
+[
+  {
+    "id": "yueji",
+    "cnName": "月季",
+    "localFile": "miniprogram/images/species/yueji.jpg",
+    "cloudPath": "assets/species/yueji.jpg"
+  },
+  {
+    "id": "meigui",
+    "cnName": "玫瑰",
+    "localFile": "miniprogram/images/species/meigui.jpg",
+    "cloudPath": "assets/species/meigui.jpg"
+  },
+  {
+    "id": "meihua",
+    "cnName": "梅花",
+    "localFile": "miniprogram/images/species/meihua.jpg",
+    "cloudPath": "assets/species/meihua.jpg"
+  },
+  {
+    "id": "taohua",
+    "cnName": "桃花",
+    "localFile": "miniprogram/images/species/taohua.jpg",
+    "cloudPath": "assets/species/taohua.jpg"
+  },
+  {
+    "id": "yinghua",
+    "cnName": "樱花",
+    "localFile": "miniprogram/images/species/yinghua.jpg",
+    "cloudPath": "assets/species/yinghua.jpg"
+  },
+  {
+    "id": "lihua",
+    "cnName": "梨花",
+    "localFile": "miniprogram/images/species/lihua.jpg",
+    "cloudPath": "assets/species/lihua.jpg"
+  },
+  {
+    "id": "haitang",
+    "cnName": "海棠",
+    "localFile": "miniprogram/images/species/haitang.jpg",
+    "cloudPath": "assets/species/haitang.jpg"
+  },
+  {
+    "id": "mudan",
+    "cnName": "牡丹",
+    "localFile": "miniprogram/images/species/mudan.jpg",
+    "cloudPath": "assets/species/mudan.jpg"
+  },
+  {
+    "id": "shaoyao",
+    "cnName": "芍药",
+    "localFile": "miniprogram/images/species/shaoyao.jpg",
+    "cloudPath": "assets/species/shaoyao.jpg"
+  },
+  {
+    "id": "hehua",
+    "cnName": "荷花",
+    "localFile": "miniprogram/images/species/hehua.jpg",
+    "cloudPath": "assets/species/hehua.jpg"
+  },
+  {
+    "id": "shuilian",
+    "cnName": "睡莲",
+    "localFile": "miniprogram/images/species/shuilian.jpg",
+    "cloudPath": "assets/species/shuilian.jpg"
+  },
+  {
+    "id": "juhua",
+    "cnName": "菊花",
+    "localFile": "miniprogram/images/species/juhua.jpg",
+    "cloudPath": "assets/species/juhua.jpg"
+  },
+  {
+    "id": "guihua",
+    "cnName": "桂花",
+    "localFile": "miniprogram/images/species/guihua.jpg",
+    "cloudPath": "assets/species/guihua.jpg"
+  },
+  {
+    "id": "dujuan",
+    "cnName": "杜鹃花",
+    "localFile": "miniprogram/images/species/dujuan.jpg",
+    "cloudPath": "assets/species/dujuan.jpg"
+  },
+  {
+    "id": "shanchahua",
+    "cnName": "山茶花",
+    "localFile": "miniprogram/images/species/shanchahua.jpg",
+    "cloudPath": "assets/species/shanchahua.jpg"
+  },
+  {
+    "id": "yulan",
+    "cnName": "玉兰",
+    "localFile": "miniprogram/images/species/yulan.jpg",
+    "cloudPath": "assets/species/yulan.jpg"
+  },
+  {
+    "id": "zhizihua",
+    "cnName": "栀子花",
+    "localFile": "miniprogram/images/species/zhizihua.jpg",
+    "cloudPath": "assets/species/zhizihua.jpg"
+  },
+  {
+    "id": "molihua",
+    "cnName": "茉莉花",
+    "localFile": "miniprogram/images/species/molihua.jpg",
+    "cloudPath": "assets/species/molihua.jpg"
+  },
+  {
+    "id": "baihe",
+    "cnName": "百合",
+    "localFile": "miniprogram/images/species/baihe.jpg",
+    "cloudPath": "assets/species/baihe.jpg"
+  },
+  {
+    "id": "yujinxiang",
+    "cnName": "郁金香",
+    "localFile": "miniprogram/images/species/yujinxiang.jpg",
+    "cloudPath": "assets/species/yujinxiang.jpg"
+  },
+  {
+    "id": "xiangrikui",
+    "cnName": "向日葵",
+    "localFile": "miniprogram/images/species/xiangrikui.jpg",
+    "cloudPath": "assets/species/xiangrikui.jpg"
+  },
+  {
+    "id": "youcaihua",
+    "cnName": "油菜花",
+    "localFile": "miniprogram/images/species/youcaihua.jpg",
+    "cloudPath": "assets/species/youcaihua.jpg"
+  },
+  {
+    "id": "xunyicao",
+    "cnName": "薰衣草",
+    "localFile": "miniprogram/images/species/xunyicao.jpg",
+    "cloudPath": "assets/species/xunyicao.jpg"
+  },
+  {
+    "id": "bosijv",
+    "cnName": "波斯菊",
+    "localFile": "miniprogram/images/species/bosijv.jpg",
+    "cloudPath": "assets/species/bosijv.jpg"
+  },
+  {
+    "id": "chuju",
+    "cnName": "雏菊",
+    "localFile": "miniprogram/images/species/chuju.jpg",
+    "cloudPath": "assets/species/chuju.jpg"
+  },
+  {
+    "id": "shicheju",
+    "cnName": "矢车菊",
+    "localFile": "miniprogram/images/species/shicheju.jpg",
+    "cloudPath": "assets/species/shicheju.jpg"
+  },
+  {
+    "id": "kangnaixin",
+    "cnName": "康乃馨",
+    "localFile": "miniprogram/images/species/kangnaixin.jpg",
+    "cloudPath": "assets/species/kangnaixin.jpg"
+  },
+  {
+    "id": "mantianxing",
+    "cnName": "满天星",
+    "localFile": "miniprogram/images/species/mantianxing.jpg",
+    "cloudPath": "assets/species/mantianxing.jpg"
+  },
+  {
+    "id": "yuanwei",
+    "cnName": "鸢尾",
+    "localFile": "miniprogram/images/species/yuanwei.jpg",
+    "cloudPath": "assets/species/yuanwei.jpg"
+  },
+  {
+    "id": "chunlan",
+    "cnName": "春兰",
+    "localFile": "miniprogram/images/species/chunlan.jpg",
+    "cloudPath": "assets/species/chunlan.jpg"
+  },
+  {
+    "id": "hudielan",
+    "cnName": "蝴蝶兰",
+    "localFile": "miniprogram/images/species/hudielan.jpg",
+    "cloudPath": "assets/species/hudielan.jpg"
+  },
+  {
+    "id": "junzilan",
+    "cnName": "君子兰",
+    "localFile": "miniprogram/images/species/junzilan.jpg",
+    "cloudPath": "assets/species/junzilan.jpg"
+  },
+  {
+    "id": "shuixian",
+    "cnName": "水仙",
+    "localFile": "miniprogram/images/species/shuixian.jpg",
+    "cloudPath": "assets/species/shuixian.jpg"
+  },
+  {
+    "id": "fengxiaozi",
+    "cnName": "风信子",
+    "localFile": "miniprogram/images/species/fengxiaozi.jpg",
+    "cloudPath": "assets/species/fengxiaozi.jpg"
+  },
+  {
+    "id": "ziluolan",
+    "cnName": "紫罗兰",
+    "localFile": "miniprogram/images/species/ziluolan.jpg",
+    "cloudPath": "assets/species/ziluolan.jpg"
+  },
+  {
+    "id": "sanseqin",
+    "cnName": "三色堇",
+    "localFile": "miniprogram/images/species/sanseqin.jpg",
+    "cloudPath": "assets/species/sanseqin.jpg"
+  },
+  {
+    "id": "qianniuhua",
+    "cnName": "牵牛花",
+    "localFile": "miniprogram/images/species/qianniuhua.jpg",
+    "cloudPath": "assets/species/qianniuhua.jpg"
+  },
+  {
+    "id": "jinyinhua",
+    "cnName": "金银花",
+    "localFile": "miniprogram/images/species/jinyinhua.jpg",
+    "cloudPath": "assets/species/jinyinhua.jpg"
+  },
+  {
+    "id": "yingchunhua",
+    "cnName": "迎春花",
+    "localFile": "miniprogram/images/species/yingchunhua.jpg",
+    "cloudPath": "assets/species/yingchunhua.jpg"
+  },
+  {
+    "id": "lianqiao",
+    "cnName": "连翘",
+    "localFile": "miniprogram/images/species/lianqiao.jpg",
+    "cloudPath": "assets/species/lianqiao.jpg"
+  },
+  {
+    "id": "ziteng",
+    "cnName": "紫藤",
+    "localFile": "miniprogram/images/species/ziteng.jpg",
+    "cloudPath": "assets/species/ziteng.jpg"
+  },
+  {
+    "id": "mumianhua",
+    "cnName": "木棉花",
+    "localFile": "miniprogram/images/species/mumianhua.jpg",
+    "cloudPath": "assets/species/mumianhua.jpg"
+  },
+  {
+    "id": "fenghuangmu",
+    "cnName": "凤凰木",
+    "localFile": "miniprogram/images/species/fenghuangmu.jpg",
+    "cloudPath": "assets/species/fenghuangmu.jpg"
+  },
+  {
+    "id": "lanhuaying",
+    "cnName": "蓝花楹",
+    "localFile": "miniprogram/images/species/lanhuaying.jpg",
+    "cloudPath": "assets/species/lanhuaying.jpg"
+  },
+  {
+    "id": "jidanhua",
+    "cnName": "鸡蛋花",
+    "localFile": "miniprogram/images/species/jidanhua.jpg",
+    "cloudPath": "assets/species/jidanhua.jpg"
+  },
+  {
+    "id": "sanjiaomei",
+    "cnName": "三角梅",
+    "localFile": "miniprogram/images/species/sanjiaomei.jpg",
+    "cloudPath": "assets/species/sanjiaomei.jpg"
+  },
+  {
+    "id": "ziwei",
+    "cnName": "紫薇",
+    "localFile": "miniprogram/images/species/ziwei.jpg",
+    "cloudPath": "assets/species/ziwei.jpg"
+  },
+  {
+    "id": "mujin",
+    "cnName": "木槿",
+    "localFile": "miniprogram/images/species/mujin.jpg",
+    "cloudPath": "assets/species/mujin.jpg"
+  },
+  {
+    "id": "fusang",
+    "cnName": "扶桑",
+    "localFile": "miniprogram/images/species/fusang.jpg",
+    "cloudPath": "assets/species/fusang.jpg"
+  },
+  {
+    "id": "linglan",
+    "cnName": "铃兰",
+    "localFile": "miniprogram/images/species/linglan.jpg",
+    "cloudPath": "assets/species/linglan.jpg"
+  },
+  {
+    "id": "pugongying",
+    "cnName": "蒲公英",
+    "localFile": "miniprogram/images/species/pugongying.jpg",
+    "cloudPath": "assets/species/pugongying.jpg"
+  },
+  {
+    "id": "biyanhua",
+    "cnName": "彼岸花",
+    "localFile": "miniprogram/images/species/biyanhua.jpg",
+    "cloudPath": "assets/species/biyanhua.jpg"
+  },
+  {
+    "id": "hanxiao",
+    "cnName": "含笑",
+    "localFile": "miniprogram/images/species/hanxiao.jpg",
+    "cloudPath": "assets/species/hanxiao.jpg"
+  },
+  {
+    "id": "yumeiren",
+    "cnName": "虞美人",
+    "localFile": "miniprogram/images/species/yumeiren.jpg",
+    "cloudPath": "assets/species/yumeiren.jpg"
+  },
+  {
+    "id": "xiuqiuhua",
+    "cnName": "绣球花",
+    "localFile": "miniprogram/images/species/xiuqiuhua.jpg",
+    "cloudPath": "assets/species/xiuqiuhua.jpg"
+  },
+  {
+    "id": "dingxiang",
+    "cnName": "丁香",
+    "localFile": "miniprogram/images/species/dingxiang.jpg",
+    "cloudPath": "assets/species/dingxiang.jpg"
+  },
+  {
+    "id": "lingxiao",
+    "cnName": "凌霄",
+    "localFile": "miniprogram/images/species/lingxiao.jpg",
+    "cloudPath": "assets/species/lingxiao.jpg"
+  },
+  {
+    "id": "tanhua",
+    "cnName": "昙花",
+    "localFile": "miniprogram/images/species/tanhua.jpg",
+    "cloudPath": "assets/species/tanhua.jpg"
+  },
+  {
+    "id": "xuelian",
+    "cnName": "雪莲",
+    "localFile": "miniprogram/images/species/xuelian.jpg",
+    "cloudPath": "assets/species/xuelian.jpg"
+  },
+  {
+    "id": "zijing",
+    "cnName": "紫荆",
+    "localFile": "miniprogram/images/species/zijing.jpg",
+    "cloudPath": "assets/species/zijing.jpg"
+  }
+]

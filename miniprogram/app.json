@@ -1,0 +1,32 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/recognize/recognize",
+    "pages/album/album",
+    "pages/detail/detail",
+    "pages/achievements/achievements",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#f7f4ec",
+    "navigationBarTitleText": "随心一拍-花知道",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f7f4ec",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#9a948a",
+    "selectedColor": "#3e7d5c",
+    "backgroundColor": "#fffdf7",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "识花" },
+      { "pagePath": "pages/album/album", "text": "图鉴" },
+      { "pagePath": "pages/achievements/achievements", "text": "成就" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

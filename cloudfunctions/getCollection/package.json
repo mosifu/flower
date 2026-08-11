@@ -1,0 +1,10 @@
+{
+  "name": "getCollection",
+  "version": "1.0.0",
+  "description": "图鉴数据与收集统计",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

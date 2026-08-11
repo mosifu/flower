@@ -1,0 +1,203 @@
+/* ===== 识别页样式 ===== */
+.preview {
+  width: 100%;
+  height: 420rpx;
+  border-radius: 24rpx;
+  display: block;
+}
+
+.quota-bar {
+  margin: 16rpx 4rpx 20rpx;
+}
+
+.candidate-panel {
+  padding-top: 24rpx;
+}
+
+.candidate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 20rpx;
+}
+
+.section-title-inline {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.link {
+  color: #3e7d5c;
+  font-size: 26rpx;
+}
+
+.search-box {
+  margin-bottom: 20rpx;
+}
+
+.search-input {
+  background: #f7f4ec;
+  border-radius: 16rpx;
+  padding: 16rpx 22rpx;
+  font-size: 28rpx;
+}
+
+.search-results {
+  background: #fff;
+  border-radius: 16rpx;
+  margin-top: 10rpx;
+  overflow: hidden;
+}
+
+.search-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 18rpx 22rpx;
+  border-bottom: 1rpx solid #f0ece0;
+}
+
+.candidate {
+  border: 3rpx solid transparent;
+  border-radius: 18rpx;
+  padding: 20rpx;
+  margin-bottom: 18rpx;
+  background: #fbf9f2;
+  display: flex;
+}
+
+.candidate-active {
+  background: #f4f8f2;
+}
+
+.candidate-radio {
+  width: 44rpx;
+  font-size: 32rpx;
+  color: #3e7d5c;
+  flex-shrink: 0;
+}
+
+.candidate-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.candidate-name-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.candidate-name {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.candidate-score {
+  font-size: 24rpx;
+}
+
+.candidate-species {
+  margin-top: 10rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.candidate-desc {
+  margin-top: 10rpx;
+  font-size: 26rpx;
+  color: #6f6a5f;
+  line-height: 1.6;
+}
+
+.candidate-desc-source {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+}
+
+.candidate-warn {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #c9960a;
+}
+
+.confirm-btn {
+  margin-top: 10rpx;
+}
+
+.empty-btn {
+  margin: 30rpx auto 0;
+  width: 320rpx;
+}
+
+.loading-icon {
+  animation: floatUp 1.2s ease infinite;
+}
+
+.empty-inline {
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.retake-btn {
+  margin-top: 20rpx;
+}
+
+.success-wrap {
+  text-align: center;
+  padding-top: 40rpx;
+}
+
+.success-badge {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #3e7d5c;
+  margin-bottom: 28rpx;
+}
+
+.success-card {
+  border: 6rpx solid;
+  border-radius: 28rpx;
+  overflow: hidden;
+  background: #fffdf7;
+  box-shadow: 0 12rpx 30rpx rgba(120, 100, 60, 0.15);
+  margin: 0 auto;
+  max-width: 560rpx;
+}
+
+.success-img {
+  width: 100%;
+  height: 380rpx;
+  display: block;
+}
+
+.success-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120rpx;
+  background: #f0ece0;
+}
+
+.success-info {
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.success-name {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.success-rarity {
+  margin-top: 6rpx;
+}
+
+.success-btn {
+  width: 420rpx;
+  margin: 20rpx auto 0;
+}

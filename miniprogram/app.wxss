@@ -1,0 +1,109 @@
+/* ===== 随心一拍-花知道 全局样式：水彩绘本风 ===== */
+page {
+  background: #f7f4ec;
+  color: #4a443a;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: 28rpx;
+}
+
+.page {
+  padding: 24rpx 28rpx 60rpx;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+.card {
+  background: #fffdf7;
+  border-radius: 24rpx;
+  box-shadow: 0 6rpx 20rpx rgba(120, 100, 60, 0.08);
+  padding: 28rpx;
+  box-sizing: border-box;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #3e3a30;
+  margin: 32rpx 0 20rpx;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6fae7f, #3e7d5c);
+  color: #fff;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  padding: 22rpx 0;
+  text-align: center;
+  box-shadow: 0 8rpx 20rpx rgba(62, 125, 92, 0.25);
+}
+
+.btn-primary:active {
+  opacity: 0.85;
+}
+
+.btn-ghost {
+  background: #fffdf7;
+  color: #3e7d5c;
+  border: 2rpx solid #cfe0d2;
+  border-radius: 48rpx;
+  font-size: 30rpx;
+  padding: 20rpx 0;
+  text-align: center;
+}
+
+.muted {
+  color: #9a948a;
+  font-size: 24rpx;
+}
+
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ===== 稀有度 ===== */
+.rarity-common { border-color: #5fae5f; }
+.rarity-rare { border-color: #5b9bd5; }
+.rarity-epic { border-color: #9b59b6; }
+.rarity-legendary { border-color: #c9960a; }
+
+.badge {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+.badge-common { background: #eaf5ea; color: #3e7d3e; }
+.badge-rare { background: #e8f1fb; color: #2f6ea8; }
+.badge-epic { background: #f1e8f7; color: #7d3c98; }
+.badge-legendary { background: #faf3dd; color: #9c7408; }
+
+/* ===== 通用动效 ===== */
+@keyframes floatUp {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10rpx); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease both;
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  padding: 100rpx 40rpx;
+  color: #9a948a;
+}
+.empty .empty-icon {
+  font-size: 88rpx;
+  display: block;
+  margin-bottom: 20rpx;
+}

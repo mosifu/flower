@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "花田图鉴",
+  "usingComponents": {
+    "flower-card": "/components/flower-card/flower-card"
+  }
+}

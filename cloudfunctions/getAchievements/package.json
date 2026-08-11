@@ -1,0 +1,10 @@
+{
+  "name": "getAchievements",
+  "version": "1.0.0",
+  "description": "成就与花匠等级（由 user_cards 实时推导）",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

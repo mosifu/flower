@@ -1,0 +1,133 @@
+<!-- 花卡详情页：卡头、照片管理、备注、科普档案 -->
+<view class="page detail">
+  <block wx:if="{{sp}}">
+    <view class="hero-card rarity-{{sp.rarity}} fade-in">
+      <image wx:if="{{sp.illustrationFileID}}" class="hero-img" src="{{sp.illustrationFileID}}" mode="aspectFill" />
+      <view wx:else class="hero-img hero-placeholder">🌷</view>
+      <view class="hero-info">
+        <view class="hero-name-row">
+          <text class="hero-name">{{sp.cnName}}</text>
+          <text class="badge badge-{{sp.rarity}}">{{sp.rarityLabel}}</text>
+        </view>
+        <text class="hero-latin">{{sp.latinName}}</text>
+        <text class="muted">{{sp.family}} · {{sp.genus}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{!sp.collected}}" class="card not-collected">
+      <view>🌱 这朵花还没收进你的花田</view>
+      <view class="btn-primary nc-btn" bindtap="goRecognize">去识花收集</view>
+    </view>
+
+    <block wx:else>
+      <view class="card meta-card">
+        <view class="meta-row">
+          <text class="meta-label">遇见次数</text>
+          <text class="meta-value">× {{sp.meetCount}}</text>
+        </view>
+        <view class="meta-row">
+          <text class="meta-label">首次遇见</text>
+          <text class="meta-value">{{sp.firstMetAtText || '—'}}</text>
+        </view>
+        <view class="meta-row">
+          <text class="meta-label">最近遇见</text>
+          <text class="meta-value">{{sp.lastMetAtText || '—'}}</text>
+        </view>
+        <view class="meta-row" bindtap="openLocationModal">
+          <text class="meta-label">地点</text>
+          <text class="meta-value meta-location">{{sp.location || '点击添加（小区、公园…）'}}</text>
+          <text class="muted">✎</text>
+        </view>
+      </view>
+
+      <view class="section-title">我的拍摄记录</view>
+      <scroll-view scroll-x class="photo-scroll">
+        <view class="photo-row">
+          <view wx:for="{{sp.photos}}" wx:key="fileID" class="photo-item">
+            <image class="photo-img" src="{{item.fileID}}" mode="aspectFill" data-index="{{index}}" bindtap="onPreviewPhoto" />
+            <view class="photo-del" data-index="{{index}}" catchtap="onDeletePhoto">✕</view>
+          </view>
+          <view class="photo-add" bindtap="addPhoto">＋</view>
+        </view>
+      </scroll-view>
+
+      <view class="section-title">我的备注</view>
+      <view class="card note-card" bindtap="openNoteModal">
+        <text wx:if="{{sp.note}}">{{sp.note}}</text>
+        <text wx:else class="muted">点击添加备注（地点、心情…）</text>
+        <text class="muted note-edit">✎</text>
+      </view>
+    </block>
+
+    <view class="section-title">科普档案</view>
+    <view class="card info-card">
+      <view class="info-row">
+        <text class="info-label">花期</text>
+        <text class="info-value">{{sp.bloomSeasons.join('、') || '—'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">花色</text>
+        <text class="info-value">{{sp.colors.join('、') || '—'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">简介</text>
+        <text class="info-value">{{sp.description || '—'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">识别特征</text>
+        <text class="info-value">{{sp.features || '—'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">花语</text>
+        <text class="info-value">{{sp.flowerLanguage || '—'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">养护</text>
+        <text class="info-value">{{sp.careTips || '—'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">分布</text>
+        <text class="info-value">{{sp.distribution || '—'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">小知识</text>
+        <text class="info-value">{{sp.funFact || '—'}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{sp.collected}}" class="danger-btn" bindtap="deleteCard">删除这张花卡</view>
+  </block>
+
+  <view wx:else class="empty">
+    <text class="empty-icon">🍂</text>
+    <view>花卡加载失败或不存在</view>
+  </view>
+
+  <view wx:if="{{showNoteModal}}" class="modal-mask" bindtap="closeNoteModal">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">编辑备注</view>
+      <textarea
+        class="modal-textarea"
+        value="{{noteDraft}}"
+        placeholder="写点什么吧（心情、故事…）"
+        maxlength="200"
+        bindinput="onNoteInput"
+      />
+      <view class="btn-primary modal-btn" bindtap="saveNote">保存</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showLocationModal}}" class="modal-mask" bindtap="closeLocationModal">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">编辑地点</view>
+      <input
+        class="modal-input"
+        value="{{locationDraft}}"
+        placeholder="在哪遇见它的？（小区、公园、街角…）"
+        maxlength="100"
+        bindinput="onLocationInput"
+      />
+      <view class="btn-primary modal-btn" bindtap="saveLocation">保存</view>
+    </view>
+  </view>
+</view>

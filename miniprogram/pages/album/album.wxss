@@ -1,0 +1,118 @@
+/* ===== 图鉴页样式 ===== */
+.stats-card {
+  margin-bottom: 24rpx;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20rpx;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-num {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #3e7d5c;
+}
+
+.progress-track {
+  height: 14rpx;
+  background: #efe9da;
+  border-radius: 10rpx;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #8fc99a, #3e7d5c);
+  border-radius: 10rpx;
+  transition: width 0.5s ease;
+}
+
+.filter-bar {
+  margin-bottom: 24rpx;
+}
+
+.status-tabs {
+  display: flex;
+  background: #efe9da;
+  border-radius: 20rpx;
+  padding: 6rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border-radius: 16rpx;
+  color: #6f6a5f;
+  font-size: 28rpx;
+}
+
+.tab-active {
+  background: #fffdf7;
+  color: #3e7d5c;
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.season-chips {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 18rpx;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 8rpx 26rpx;
+  border-radius: 30rpx;
+  background: #fffdf7;
+  color: #8a8374;
+  font-size: 24rpx;
+  border: 2rpx solid #e8e1cf;
+}
+
+.chip-active {
+  background: #eaf5ea;
+  color: #3e7d5c;
+  border-color: #9fc9a6;
+}
+
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.sort-label {
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+
+.sort-chips {
+  display: flex;
+  gap: 14rpx;
+  flex-wrap: wrap;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.grid flower-card {
+  width: 48%;
+}
+
+.empty-btn {
+  margin: 30rpx auto 0;
+  width: 300rpx;
+}

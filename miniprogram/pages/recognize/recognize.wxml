@@ -1,0 +1,102 @@
+<!-- 识别页：预览、候选确认、手动纠正、成功动画 -->
+<view class="page recognize">
+  <view wx:if="{{phase === 'idle'}}" class="empty">
+    <text class="empty-icon">🌼</text>
+    <view>拍一张花的照片，或从相册选一张</view>
+    <view class="btn-primary empty-btn" bindtap="chooseNew">选择照片</view>
+  </view>
+
+  <view wx:elif="{{phase === 'recognizing'}}" class="empty">
+    <text class="empty-icon loading-icon">🌸</text>
+    <view>正在识别这朵花，请稍候…</view>
+  </view>
+
+  <block wx:elif="{{phase === 'result'}}">
+    <image class="preview" src="{{previewPath}}" mode="aspectFill" />
+    <view class="quota-bar muted">今日剩余识别次数：{{remaining}} / {{limit}}</view>
+
+    <view wx:if="{{candidates.length}}" class="card candidate-panel">
+      <view class="candidate-head">
+        <text class="section-title-inline">识别结果</text>
+        <text class="link" bindtap="toggleSearch">{{showSearch ? '收起' : '没对上？手动查找'}}</text>
+      </view>
+
+      <view wx:if="{{showSearch}}" class="search-box">
+        <input
+          class="search-input"
+          placeholder="输入花名或别名搜索"
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+        />
+        <view wx:if="{{searchResults.length}}" class="search-results">
+          <view
+            wx:for="{{searchResults}}"
+            wx:key="_id"
+            class="search-item"
+            data-index="{{index}}"
+            bindtap="onSearchPick"
+          >
+            <text>{{item.cnName}}</text>
+            <text class="muted">{{item.latinName}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view
+        wx:for="{{candidates}}"
+        wx:key="index"
+        class="candidate {{selectedIndex === index ? 'candidate-active' : ''}} rarity-{{item.species.rarity || 'common'}}"
+        data-index="{{index}}"
+        bindtap="onSelectCandidate"
+      >
+        <view class="candidate-radio">{{selectedIndex === index ? '●' : '○'}}</view>
+        <view class="candidate-main">
+          <view class="candidate-name-row">
+            <text class="candidate-name">{{item.name}}</text>
+            <text class="candidate-score muted">{{item.scoreText}}</text>
+          </view>
+          <view wx:if="{{item.lowConfidence}}" class="candidate-warn">
+            ⚠️ 置信度较低，请对照识别特征核对
+          </view>
+          <view wx:if="{{item.species}}" class="candidate-species">
+            <text class="badge badge-{{item.species.rarity}}">{{item.species.cnName}}</text>
+            <text class="muted">{{item.species.family}} · {{item.species.genus}}</text>
+          </view>
+          <view wx:else class="muted">暂未收录图鉴，仍可了解百度百科信息</view>
+          <view wx:if="{{item.species && item.species.description}}" class="candidate-desc">
+            {{item.species.description}}
+          </view>
+          <view wx:elif="{{item.baike && item.baike.description}}" class="candidate-desc">
+            {{item.baike.description}}
+            <view class="candidate-desc-source muted">来源：百度百科</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="btn-primary confirm-btn" bindtap="confirmSave">确认入库，生成花卡</view>
+    </view>
+
+    <view wx:else class="card">
+      <view class="empty-inline">🤔 {{resultMsg}}</view>
+      <view class="btn-ghost" bindtap="saveToAlbum">保存照片到系统相册</view>
+      <view class="btn-primary retake-btn" bindtap="chooseNew">重新拍摄 / 换一张</view>
+    </view>
+  </block>
+
+  <block wx:elif="{{phase === 'success'}}">
+    <view class="success-wrap fade-in">
+      <view class="success-badge">{{successCard.newCard ? '🎉 收录成功' : '💮 再次遇见'}}</view>
+      <view class="success-card rarity-{{successCard.rarity}}">
+        <image wx:if="{{successCard.illustrationFileID}}" class="success-img" src="{{successCard.illustrationFileID}}" mode="aspectFill" />
+        <view wx:else class="success-img success-placeholder">🌷</view>
+        <view class="success-info">
+          <text class="success-name">{{successCard.cnName}}</text>
+          <text class="muted">{{successCard.latinName}}</text>
+          <text class="badge badge-{{successCard.rarity}} success-rarity">第 {{successCard.meetCount}} 次遇见</text>
+        </view>
+      </view>
+      <view class="btn-primary success-btn" bindtap="viewCard">查看花卡详情</view>
+      <view class="btn-ghost success-btn" bindtap="again">再去识一株</view>
+    </view>
+  </block>
+</view>

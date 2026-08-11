@@ -1,0 +1,55 @@
+<!-- 成就页：等级 + 稀有度分布 + 徽章墙 -->
+<view class="page ach">
+  <block wx:if="{{level}}">
+    <view class="card level-card">
+      <view class="level-top">
+        <text class="level-name">{{level.name}}</text>
+        <text class="level-count">已收集 {{level.count}} 种</text>
+      </view>
+      <view class="progress-track">
+        <view class="progress-bar" style="width: {{level.progress}}%;"></view>
+      </view>
+      <view class="level-next muted">
+        {{level.nextName ? '下一级：' + level.nextName + '（' + level.nextMin + ' 种）' : '已达最高等级 🏆'}}
+      </view>
+    </view>
+
+    <view class="section-title">今日识花</view>
+    <view class="card quota-card">
+      今日剩余识别次数 <text class="quota-num">{{todayRemaining}}</text> 次
+    </view>
+
+    <view class="section-title">稀有度收藏</view>
+    <view class="card rarity-card">
+      <view wx:for="{{rarityDist}}" wx:key="key" class="rarity-row">
+        <text class="rarity-label">{{item.label}}</text>
+        <view class="rarity-track">
+          <view
+            class="rarity-bar rarity-bar-{{item.key}}"
+            style="width: {{item.total ? (item.collected / item.total * 100) : 0}}%;"
+          ></view>
+        </view>
+        <text class="muted">{{item.collected}}/{{item.total}}</text>
+      </view>
+    </view>
+
+    <view class="section-title">成就徽章</view>
+    <view class="badge-grid">
+      <view
+        wx:for="{{badges}}"
+        wx:key="code"
+        class="badge-cell {{item.unlocked ? 'badge-unlocked' : 'badge-locked'}}"
+      >
+        <text class="badge-icon">{{item.icon}}</text>
+        <text class="badge-name">{{item.name}}</text>
+        <text class="badge-desc">{{item.desc}}</text>
+        <text class="badge-time">{{item.unlocked ? (item.achievedAtText || '已解锁') : '未解锁'}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="empty">
+    <text class="empty-icon">🏅</text>
+    <view>{{loading ? '加载中…' : '成就系统加载失败'}}</view>
+  </view>
+</view>

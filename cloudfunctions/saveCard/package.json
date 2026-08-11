@@ -1,0 +1,10 @@
+{
+  "name": "saveCard",
+  "version": "1.0.0",
+  "description": "花卡入库与维护：create / addPhoto / updateNote / updateLocation / deletePhoto / deleteCard",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

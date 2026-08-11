@@ -1,0 +1,83 @@
+<!-- 我的页：统计 + 说明 + 关于 -->
+<view class="page profile">
+  <view class="user-card">
+    <view class="avatar">🌷</view>
+    <view class="user-info">
+      <text class="user-name">花知道收藏家</text>
+      <text class="muted">{{appName}} v{{version}}</text>
+    </view>
+  </view>
+
+  <view class="card stats-row" wx:if="{{stats}}">
+    <view class="stat">
+      <text class="stat-num">{{stats.collected}}</text>
+      <text class="muted">已收集</text>
+    </view>
+    <view class="stat">
+      <text class="stat-num">{{stats.rate}}%</text>
+      <text class="muted">图鉴收集率</text>
+    </view>
+    <view class="stat">
+      <text class="stat-num">{{todayRemaining}}</text>
+      <text class="muted">今日剩余识别</text>
+    </view>
+  </view>
+
+  <view class="section-title">说明</view>
+  <view class="card info-card">
+    <view class="info-line">· 识别能力由百度 AI 植物识别提供，结果仅供参考，请以植物志等权威资料为准。</view>
+    <view class="info-line">· 每人每日最多识别 {{todayLimit}} 次，避免接口滥用。</view>
+    <view class="info-line">· 你的照片仅保存在自己的云端空间，不对外公开。</view>
+  </view>
+
+  <view class="section-title">关于</view>
+  <view class="card about-card">
+    <view class="about-line" bindtap="openPrivacy">📄 隐私政策与用户协议</view>
+    <view class="about-line muted">🔓 本项目以 Apache-2.0 开源，识别链路复用并致谢 caozha.com 开源项目（详见 NOTICE）</view>
+  </view>
+
+  <view class="section-title">账号</view>
+  <view class="card about-card">
+    <view class="about-line danger-line" bindtap="logoutAccount">🗑 注销账号（删除全部数据）</view>
+  </view>
+
+  <!-- 注销确认弹窗：自定义输入框，替代系统 editable 弹窗（placeholder 不消失的平台问题） -->
+  <view wx:if="{{showLogoutConfirm}}" class="modal-mask" bindtap="closeLogoutConfirm">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">最后确认</view>
+      <view class="modal-tip">注销将删除你全部花卡、照片与识别记录，且不可恢复。请输入「注销」以确认：</view>
+      <input
+        class="modal-input"
+        value="{{logoutInput}}"
+        placeholder="请输入：注销"
+        maxlength="10"
+        bindinput="onLogoutInput"
+      />
+      <view class="btn-primary modal-btn {{logoutInput === '注销' ? '' : 'btn-disabled'}}" bindtap="doLogout">确认注销</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showPrivacy}}" class="modal-mask" bindtap="closePrivacy">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">隐私政策</view>
+      <scroll-view scroll-y class="modal-body">
+        <view class="privacy-p">
+          1. 本小程序仅在为你执行“识花”时上传你选择的照片，照片存储于微信云开发私有空间，仅本人可见。
+        </view>
+        <view class="privacy-p">
+          2. 识别结果、收藏记录、成就数据仅与你本人的微信身份绑定，用于图鉴与成就展示。
+        </view>
+        <view class="privacy-p">
+          3. 我们不会将你的照片与数据提供给第三方，也不会上传公开社区。
+        </view>
+        <view class="privacy-p">
+          4. 百度 AI 仅接收单张待识别图片用于返回识别结果，不用于其他用途。
+        </view>
+        <view class="privacy-p">
+          5. 如需删除全部个人数据，可在小程序内删除对应花卡；账号注销能力后续提供。
+        </view>
+      </scroll-view>
+      <view class="btn-primary modal-btn" bindtap="closePrivacy">我知道了</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,224 @@
+/* ===== 花卡详情页样式 ===== */
+.hero-card {
+  border: 6rpx solid;
+  border-radius: 28rpx;
+  overflow: hidden;
+  background: #fffdf7;
+  box-shadow: 0 10rpx 26rpx rgba(120, 100, 60, 0.12);
+}
+
+.hero-img {
+  width: 100%;
+  height: 380rpx;
+  display: block;
+}
+
+.hero-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120rpx;
+  background: #f0ece0;
+}
+
+.hero-info {
+  padding: 24rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.hero-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hero-name {
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.hero-latin {
+  font-style: italic;
+  color: #6f6a5f;
+  font-size: 26rpx;
+}
+
+.not-collected {
+  margin-top: 24rpx;
+  text-align: center;
+}
+
+.nc-btn {
+  margin: 20rpx auto 0;
+  width: 320rpx;
+}
+
+.meta-card {
+  margin-top: 24rpx;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10rpx 0;
+}
+
+.meta-label {
+  color: #8a8374;
+}
+
+.meta-value {
+  font-weight: 600;
+}
+
+.photo-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.photo-row {
+  display: inline-flex;
+  gap: 18rpx;
+}
+
+.photo-item {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  flex-shrink: 0;
+}
+
+.photo-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 18rpx;
+  display: block;
+}
+
+.photo-del {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 24rpx;
+}
+
+.photo-add {
+  width: 200rpx;
+  height: 200rpx;
+  flex-shrink: 0;
+  border: 2rpx dashed #c9c2b0;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64rpx;
+  color: #8a8374;
+  background: #fbf9f2;
+}
+
+.note-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.note-edit {
+  font-size: 32rpx;
+}
+
+.info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.info-row {
+  display: flex;
+  gap: 20rpx;
+}
+
+.info-label {
+  width: 120rpx;
+  color: #8a8374;
+  flex-shrink: 0;
+  padding-top: 2rpx;
+}
+
+.info-value {
+  flex: 1;
+  line-height: 1.6;
+}
+
+.danger-btn {
+  margin-top: 40rpx;
+  text-align: center;
+  color: #c0564f;
+  padding: 22rpx 0;
+  background: #fdf1ef;
+  border-radius: 48rpx;
+}
+
+.modal-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  width: 600rpx;
+  background: #fffdf7;
+  border-radius: 28rpx;
+  padding: 36rpx;
+  box-sizing: border-box;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+  text-align: center;
+}
+
+.modal-textarea {
+  width: 100%;
+  height: 200rpx;
+  background: #f7f4ec;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+}
+
+.modal-input {
+  width: 100%;
+  background: #f7f4ec;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+}
+
+.meta-location {
+  flex: 1;
+  text-align: right;
+}
+
+.modal-btn {
+  margin-top: 24rpx;
+}
