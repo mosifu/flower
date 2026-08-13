@@ -33,8 +33,8 @@ const ARK_MODEL = process.env.ARK_MODEL || 'doubao-seedream-5.0-lite';
 const PROMPT_PREFIX = '水彩绘本风植物科普图鉴插画，一株';
 const PROMPT_SUFFIX = '花朵特写居中，叶片细节清晰，柔和米白背景，清新治愈水彩风格，细腻笔触，无水印无文字';
 
-// 生成中超过 5 分钟视为卡死（上次运行被 60s 超时强杀等），允许重新拾取
-const STALE_GENERATING_MS = 5 * 60 * 1000;
+// 生成中超过 3 分钟视为卡死（上次运行被 60s 超时强杀等），允许重新拾取
+const STALE_GENERATING_MS = 3 * 60 * 1000;
 // 最大重试次数：超过后任务置 failed 并退还配额
 const MAX_RETRIES = 3;
 
@@ -93,7 +93,7 @@ function httpGetBuffer(url) {
       res.on('end', () => resolve(Buffer.concat(chunks)));
     });
     req.on('error', reject);
-    req.setTimeout(20000, () => req.destroy(new Error('下载图片超时')));
+    req.setTimeout(15000, () => req.destroy(new Error('下载图片超时')));
   });
 }
 
@@ -142,7 +142,7 @@ async function generateInfo(name, baikeDesc) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY || ''}`
     },
-    20000
+    15000
   );
 
   const content = data && data.choices && data.choices[0] && data.choices[0].message
@@ -221,13 +221,9 @@ async function generateImage(prompt) {
     size: '1920x1920',
     response_format: 'b64_json'
   };
-  // 部分接口不接受 watermark 参数：先带参数，失败去参重试（参考 seedream_generate.py）
-  let data;
-  try {
-    data = await httpJson('POST', ARK_URL, JSON.stringify(Object.assign({ watermark: false }, body)), headers, 40000);
-  } catch (e) {
-    data = await httpJson('POST', ARK_URL, JSON.stringify(body), headers, 40000);
-  }
+  // 单次调用、不带 watermark 参数：
+  // 之前「失败去参重试」两次串行最坏 80s，超出云函数 60s 硬上限导致任务被强杀卡死
+  const data = await httpJson('POST', ARK_URL, JSON.stringify(body), headers, 25000);
 
   const item = (data && data.data && data.data[0]) || {};
   if (item.b64_json) {
