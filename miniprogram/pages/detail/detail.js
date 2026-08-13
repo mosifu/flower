@@ -238,63 +238,17 @@ Page({
     });
   },
 
-  downloadIllustration() {
+  previewIllustration() {
     /**
-     * 下载花卡插画：云存储 fileID 或 https 地址 → 保存到系统相册
+     * 插画全屏预览：长按可保存到相册（与拍摄记录交互一致）
      * @returns {void}
      */
     const sp = this.data.sp;
-    if (!sp || !sp.illustrationFileID) {
-      util.showToast('暂无插画可下载');
-      return;
-    }
-    wx.showLoading({ title: '下载中...', mask: true });
-    const src = sp.illustrationFileID;
-    // cloud:// 用云存储下载；https 地址用普通下载
-    const dlPromise = src.indexOf('cloud://') === 0
-      ? wx.cloud.downloadFile({ fileID: src })
-      : wx.downloadFile({ url: src });
-    dlPromise
-      .then((res) => {
-        wx.hideLoading();
-        const path = (res && res.tempFilePath) || '';
-        if (!path) {
-          util.showToast('下载失败，请重试');
-          return;
-        }
-        this.saveIllustrationToAlbum(path);
-      })
-      .catch(() => {
-        wx.hideLoading();
-        util.showToast('下载失败，请重试');
-      });
-  },
-
-  saveIllustrationToAlbum(filePath) {
-    /**
-     * 保存插画到系统相册（拒绝授权时引导去设置开启）
-     * @param {string} filePath - 本地临时文件路径
-     * @returns {void}
-     */
-    wx.saveImageToPhotosAlbum({
-      filePath,
-      success: () => util.showToast('已保存到相册', 'success'),
-      fail: (err) => {
-        const msg = (err && err.errMsg) || '';
-        // 相册授权被拒：引导用户去设置页开启
-        if (msg.indexOf('auth') > -1 || msg.indexOf('deny') > -1 || msg.indexOf('denied') > -1) {
-          wx.showModal({
-            title: '需要相册权限',
-            content: '保存插画需要相册权限，请在设置中允许',
-            confirmText: '去设置',
-            success: (r) => {
-              if (r.confirm) wx.openSetting();
-            }
-          });
-        } else {
-          util.showToast('保存失败，请重试');
-        }
-      }
+    if (!sp || !sp.illustrationFileID) return;
+    // 预览组件内自带长按保存，无需独立下载按钮（避免破坏插画观感）
+    wx.previewImage({
+      urls: [sp.illustrationFileID],
+      current: sp.illustrationFileID
     });
   },
 

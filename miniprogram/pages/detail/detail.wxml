@@ -2,7 +2,14 @@
 <view class="page detail">
   <block wx:if="{{sp}}">
     <view class="hero-card rarity-{{sp.rarity}} fade-in">
-      <image wx:if="{{sp.illustrationFileID}}" class="hero-img" src="{{sp.illustrationFileID}}" mode="aspectFill" />
+      <!-- 插画点击全屏预览，长按可保存（与拍摄记录交互一致，无独立下载按钮） -->
+      <image
+        wx:if="{{sp.illustrationFileID}}"
+        class="hero-img"
+        src="{{sp.illustrationFileID}}"
+        mode="aspectFill"
+        bindtap="previewIllustration"
+      />
       <view wx:else class="hero-img hero-placeholder">🌷</view>
       <view class="hero-info">
         <view class="hero-name-row">
@@ -11,8 +18,6 @@
         </view>
         <text class="hero-latin">{{sp.latinName}}</text>
         <text class="muted">{{sp.family}} · {{sp.genus}}</text>
-        <!-- 下载插画：未收集也可下载（插画为公共科普资源） -->
-        <view class="hero-download" bindtap="downloadIllustration">⬇️ 保存插画到相册</view>
       </view>
     </view>
 

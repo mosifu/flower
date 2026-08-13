@@ -45,17 +45,6 @@
   font-size: 26rpx;
 }
 
-.hero-download {
-  margin-top: 12rpx;
-  align-self: flex-start;
-  padding: 10rpx 26rpx;
-  border-radius: 30rpx;
-  background: #eaf5ea;
-  color: #3e7d5c;
-  font-size: 24rpx;
-  border: 2rpx solid #9fc9a6;
-}
-
 .not-collected {
   margin-top: 24rpx;
   text-align: center;
