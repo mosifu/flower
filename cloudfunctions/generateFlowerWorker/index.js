@@ -33,6 +33,11 @@ const ARK_MODEL = process.env.ARK_MODEL || 'doubao-seedream-5.0-lite';
 const PROMPT_PREFIX = '水彩绘本风植物科普图鉴插画，一株';
 const PROMPT_SUFFIX = '花朵特写居中，叶片细节清晰，柔和米白背景，清新治愈水彩风格，细腻笔触，无水印无文字';
 
+// 生成中超过 5 分钟视为卡死（上次运行被 60s 超时强杀等），允许重新拾取
+const STALE_GENERATING_MS = 5 * 60 * 1000;
+// 最大重试次数：超过后任务置 failed 并退还配额
+const MAX_RETRIES = 3;
+
 function httpJson(method, url, body, headers, timeoutMs) {
   /**
    * 通用 HTTPS 请求并解析 JSON 响应
@@ -88,7 +93,7 @@ function httpGetBuffer(url) {
       res.on('end', () => resolve(Buffer.concat(chunks)));
     });
     req.on('error', reject);
-    req.setTimeout(30000, () => req.destroy(new Error('下载图片超时')));
+    req.setTimeout(20000, () => req.destroy(new Error('下载图片超时')));
   });
 }
 
@@ -137,7 +142,7 @@ async function generateInfo(name, baikeDesc) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY || ''}`
     },
-    30000
+    20000
   );
 
   const content = data && data.choices && data.choices[0] && data.choices[0].message
@@ -219,9 +224,9 @@ async function generateImage(prompt) {
   // 部分接口不接受 watermark 参数：先带参数，失败去参重试（参考 seedream_generate.py）
   let data;
   try {
-    data = await httpJson('POST', ARK_URL, JSON.stringify(Object.assign({ watermark: false }, body)), headers, 45000);
+    data = await httpJson('POST', ARK_URL, JSON.stringify(Object.assign({ watermark: false }, body)), headers, 40000);
   } catch (e) {
-    data = await httpJson('POST', ARK_URL, JSON.stringify(body), headers, 45000);
+    data = await httpJson('POST', ARK_URL, JSON.stringify(body), headers, 40000);
   }
 
   const item = (data && data.data && data.data[0]) || {};
@@ -327,18 +332,44 @@ exports.main = async () => {
       return { ok: false, code: 'CONFIG_MISSING', message: '未配置生成服务密钥' };
     }
 
-    // 1. 取最早 1 个 pending 任务（单轮单任务，控制在 60s 超时内）
-    const pendingRes = await db
-      .collection('flower_gen_tasks')
+    // 1. 取任务：优先最早 pending；其次拾取卡死的 generating（超过 5 分钟未更新，
+    //    说明上次运行被超时强杀，任务悬死，需要重试续命）
+    const taskCol = db.collection('flower_gen_tasks');
+    const pendingRes = await taskCol
       .where({ status: 'pending' })
       .orderBy('createdAt', 'asc')
       .limit(1)
       .get();
-    if (!pendingRes.data.length) {
+    let task = pendingRes.data[0] || null;
+    if (!task) {
+      const staleRes = await taskCol
+        .where({
+          status: 'generating',
+          updatedAt: db.command.lt(Date.now() - STALE_GENERATING_MS)
+        })
+        .orderBy('updatedAt', 'asc')
+        .limit(1)
+        .get();
+      task = staleRes.data[0] || null;
+    }
+    if (!task) {
       return { ok: true, processed: 0 };
     }
-    const task = pendingRes.data[0];
-    const taskCol = db.collection('flower_gen_tasks');
+
+    // 重试上限：超限任务直接置 failed（不再占用 worker），退配额
+    const retryCount = Number(task.retryCount || 0);
+    if (retryCount >= MAX_RETRIES) {
+      await taskCol.doc(task._id).update({
+        data: {
+          status: 'failed',
+          error: '多次重试失败',
+          retryCount,
+          updatedAt: Date.now()
+        }
+      });
+      await refundGenQuota(task.openid);
+      return { ok: true, processed: 0 };
+    }
 
     await taskCol.doc(task._id).update({
       data: { status: 'generating', updatedAt: Date.now() }
@@ -397,17 +428,33 @@ exports.main = async () => {
       });
       return { ok: true, processed: 1, speciesId: info.id };
     } catch (e) {
-      // 任务失败：非违规失败退还配额
+      // 任务失败：违规立即置 failed 不退配额；否则进入重试队列，
+      // 超过重试上限才置 failed 并退配额（避免重复退还）
       console.error('generateFlowerWorker 任务失败:', task._id, e);
-      await taskCol.doc(task._id).update({
-        data: {
-          status: 'failed',
-          error: (e && e.message) || '生成失败',
-          updatedAt: Date.now()
+      const isUnsafe = e && (e.code === 'UNSAFE_TEXT' || e.code === 'UNSAFE_IMAGE');
+      const newRetry = retryCount + 1;
+      if (isUnsafe || newRetry >= MAX_RETRIES) {
+        await taskCol.doc(task._id).update({
+          data: {
+            status: 'failed',
+            error: (e && e.message) || '生成失败',
+            retryCount: newRetry,
+            updatedAt: Date.now()
+          }
+        });
+        if (!isUnsafe) {
+          await refundGenQuota(task.openid);
         }
-      });
-      if (!(e && (e.code === 'UNSAFE_TEXT' || e.code === 'UNSAFE_IMAGE'))) {
-        await refundGenQuota(task.openid);
+      } else {
+        // 回到 pending 等待下一轮重试
+        await taskCol.doc(task._id).update({
+          data: {
+            status: 'pending',
+            error: (e && e.message) || '生成失败',
+            retryCount: newRetry,
+            updatedAt: Date.now()
+          }
+        });
       }
       return { ok: true, processed: 0, error: (e && e.message) || '生成失败' };
     }

@@ -134,6 +134,7 @@ exports.main = async (event) => {
           status: 'pending',
           speciesId: '',
           error: '',
+          retryCount: 0,
           createdAt: Date.now(),
           updatedAt: Date.now()
         }

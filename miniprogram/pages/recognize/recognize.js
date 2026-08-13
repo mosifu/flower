@@ -369,7 +369,13 @@ Page({
         }
         // pending/generating：继续等待
       } catch (e) {
-        // 单次轮询失败忽略，下次继续
+        // 任务不存在/无权限：任务可能未创建成功，停止轮询并提示（避免傻等 3 分钟）
+        if (e.code === 'NOT_FOUND' || e.code === 'FORBIDDEN' || e.code === 'BAD_PARAM') {
+          this.stopGenPolling();
+          this.setData({ genIndex: -1 });
+          util.showToast('生成任务未找到，请重新识别后再试');
+        }
+        // 其余单次轮询失败忽略，下次继续
       }
     }, 4000);
   },
