@@ -11,6 +11,8 @@
         </view>
         <text class="hero-latin">{{sp.latinName}}</text>
         <text class="muted">{{sp.family}} · {{sp.genus}}</text>
+        <!-- 下载插画：未收集也可下载（插画为公共科普资源） -->
+        <view class="hero-download" bindtap="downloadIllustration">⬇️ 保存插画到相册</view>
       </view>
     </view>
 
