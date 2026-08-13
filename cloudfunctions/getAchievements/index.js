@@ -198,6 +198,7 @@ exports.main = async () => {
           latinName: sp.latinName,
           rarity: sp.rarity,
           illustrationFileID: sp.illustrationFileID || '',
+          aiGenerated: !!sp.aiGenerated,
           meetCount: c.meetCount || 0,
           lastMetAt: c.lastMetAt || 0
         };

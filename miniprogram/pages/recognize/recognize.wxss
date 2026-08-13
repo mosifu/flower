@@ -122,6 +122,26 @@
   color: #c9960a;
 }
 
+.gen-row {
+  margin-top: 12rpx;
+}
+
+.gen-btn {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  background: #eaf5ea;
+  color: #3e7d5c;
+  font-size: 24rpx;
+  border: 2rpx solid #9fc9a6;
+}
+
+.gen-btn-pending {
+  background: #f0ece0;
+  color: #8a8374;
+  border-color: #e0d9c8;
+}
+
 .confirm-btn {
   margin-top: 10rpx;
 }

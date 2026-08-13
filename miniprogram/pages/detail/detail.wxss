@@ -34,6 +34,26 @@
   justify-content: space-between;
 }
 
+.hero-badges {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  flex-shrink: 0;
+}
+
+.badge-ai {
+  font-size: 20rpx;
+  color: #8a8374;
+  border: 1rpx solid #d8d2c2;
+  border-radius: 12rpx;
+  padding: 4rpx 14rpx;
+}
+
+.ai-note {
+  margin: 16rpx 4rpx 0;
+  font-size: 24rpx;
+}
+
 .hero-name {
   font-size: 44rpx;
   font-weight: 700;

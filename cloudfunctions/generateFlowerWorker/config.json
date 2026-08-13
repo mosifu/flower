@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "openapi": [
+      "security.msgSecCheck",
+      "security.imgSecCheck"
+    ]
+  },
+  "timeout": 60,
+  "triggers": [
+    {
+      "name": "flower-gen-tick",
+      "type": "timer",
+      "config": "0 */2 * * * * *"
+    }
+  ]
+}

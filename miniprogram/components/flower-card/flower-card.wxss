@@ -90,6 +90,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8rpx;
+}
+
+.fc-ai {
+  font-size: 18rpx;
+  color: #8a8374;
+  border: 1rpx solid #d8d2c2;
+  border-radius: 10rpx;
+  padding: 2rpx 10rpx;
+  flex-shrink: 0;
 }
 
 .fc-latin {

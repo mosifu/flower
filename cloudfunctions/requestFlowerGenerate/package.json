@@ -1,0 +1,10 @@
+{
+  "name": "requestFlowerGenerate",
+  "version": "1.0.0",
+  "description": "未收录花生成请求：去重、配额校验、建任务",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -70,6 +70,11 @@
             {{item.baike.description}}
             <view class="candidate-desc-source muted">来源：百度百科</view>
           </view>
+          <!-- 未收录花生成入口：置信度 >40% 且未在生成中时显示 -->
+          <view wx:if="{{!item.species && item.score > 0.4}}" class="gen-row">
+            <view wx:if="{{genIndex === index}}" class="gen-btn gen-btn-pending">✨ 生成中…约需 1 分钟</view>
+            <view wx:else class="gen-btn" data-index="{{index}}" bindtap="onGenerateTap">✨ 收录并生成花卡（AI 绘制插画与科普）</view>
+          </view>
         </view>
       </view>
 

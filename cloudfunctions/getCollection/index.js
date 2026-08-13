@@ -153,6 +153,7 @@ exports.main = async (event) => {
         distribution: s.distribution || '',
         funFact: s.funFact || '',
         illustrationFileID: s.illustrationFileID || '',
+        aiGenerated: !!s.aiGenerated,
         collected: !!c,
         meetCount: c ? c.meetCount : 0,
         photos: c ? c.photos : [],

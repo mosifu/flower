@@ -39,7 +39,10 @@ flower/
 │   ├── getAchievements/         # 等级、徽章、统计、今日剩余次数、最近收获
 │   ├── initSpecies/             # 导入 60 种知识库（幂等，需管理员）
 │   ├── deleteAccount/           # 注销：删除该用户全部数据与照片
-│   └── cleanupData/             # 定时清理过期数据（rate_limits 保留 30 天）
+│   ├── cleanupData/             # 定时清理过期数据（rate_limits 保留 30 天）
+│   ├── requestFlowerGenerate/   # 未收录花生成请求（配额+去重+建任务）
+│   ├── getFlowerGenerateTask/   # 生成任务状态查询（前端轮询）
+│   └── generateFlowerWorker/    # 定时 worker：DeepSeek 科普 + Seedream 插画 + 入库
 ├── docs/SCHEMA.md               # 数据库集合与云函数说明
 ├── docs/技术文档.md              # 系统架构与接口技术文档
 ├── docs/需求方案.md              # 产品需求与玩法规则方案
@@ -60,13 +63,14 @@ flower/
 ### 2. 开通云开发
 
 - 开发者工具中点击「云开发」开通环境（有免费额度）。
-- 在云开发控制台创建 5 个集合：`species`、`user_cards`、`rate_limits`、`bd_token`、`photo_hashes`。
+- 在云开发控制台创建 7 个集合：`species`、`user_cards`、`rate_limits`、`bd_token`、`photo_hashes`、`flower_gen_tasks`、`gen_limits`。
 - 把 `miniprogram/config.js` 中的 `CLOUD_ENV` 改为你的云环境 ID（本仓库提交的是作者的环境 ID，直接使用会指向作者环境）。
 
 ### 3. 部署云函数
 
-- 在 `cloudfunctions` 下对 7 个函数目录分别右键 →「上传并部署：云端安装依赖」。
-- `cleanupData` 首次部署时选择「上传触发器」，之后每周日 03:00 自动清理 30 天前的限流历史。
+- 在 `cloudfunctions` 下对 10 个函数目录分别右键 →「上传并部署：云端安装依赖」。
+- `cleanupData`、`generateFlowerWorker` 首次部署时选择「上传触发器」（分别是每周日 03:00 清理、每 2 分钟生成 worker）。
+- `generateFlowerWorker` 需配置环境变量 `DEEPSEEK_API_KEY`、`ARK_API_KEY`（未收录花自动生成功能，见 [docs/部署与验证手册.md](docs/部署与验证手册.md) 第五节）。
 
 ### 4. 配置百度 AI
 
@@ -105,6 +109,9 @@ flower/
 | `ADMIN_OPENIDS` | initSpecies | 知识库导入白名单，逗号分隔 |
 | `ENABLE_SEC_CHECK` | recognizeFlower | 默认 `true`，`false` 跳过内容安全检测 |
 | `SEC_CHECK_STRICT` | recognizeFlower | 默认 `false`；`true` 时安全接口异常即拒绝识别 |
+| `DEEPSEEK_API_KEY` | generateFlowerWorker | DeepSeek 密钥，未收录花生成必填 |
+| `ARK_API_KEY` / `ARK_MODEL` | generateFlowerWorker | 火山方舟密钥与生图模型（默认 doubao-seedream-5.0-lite） |
+| `GEN_DAILY_LIMIT` | requestFlowerGenerate | 每用户每日生成上限，默认 3 |
 
 客户端 `miniprogram/config.js`：
 

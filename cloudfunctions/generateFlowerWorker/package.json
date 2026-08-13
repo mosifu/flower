@@ -1,0 +1,10 @@
+{
+  "name": "generateFlowerWorker",
+  "version": "1.0.0",
+  "description": "未收录花生成 worker：DeepSeek 科普 + Seedream 插画 + 安全检测 + 入库",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -25,6 +25,7 @@
     </text>
     <view class="fc-meta">
       <text class="badge badge-{{species.rarity}}">{{rarityLabel}}</text>
+      <text wx:if="{{species.aiGenerated}}" class="fc-ai">AI 生成</text>
       <text wx:if="{{collected && species.latinName}}" class="fc-latin">{{species.latinName}}</text>
     </view>
   </view>

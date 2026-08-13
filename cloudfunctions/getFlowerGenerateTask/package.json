@@ -1,0 +1,10 @@
+{
+  "name": "getFlowerGenerateTask",
+  "version": "1.0.0",
+  "description": "查询未收录花生成任务状态（前端轮询）",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

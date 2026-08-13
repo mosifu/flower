@@ -9,6 +9,8 @@
 | `rate_limits` | 每日识别次数限制 | 仅管理端可读写 |
 | `bd_token` | 百度 Access Token 缓存 | 仅管理端可读写 |
 | `photo_hashes` | 图片 MD5 指纹（永久去重） | 仅管理端可读写 |
+| `flower_gen_tasks` | 未收录花生成任务（LLM+Seedream） | 仅管理端可读写 |
+| `gen_limits` | 每日生成配额计数 | 仅管理端可读写 |
 
 > 注：前端全部通过云函数读写数据，集合统一设「仅管理端可读写」最安全。
 
@@ -76,6 +78,27 @@ speciesId: string      # 识别命中的花种 id；未命中为空串
 createdAt: number      # 写入时间，cleanupData 按此清理（保留 90 天）
 ```
 
+### flower_gen_tasks（未收录花生成任务）
+```
+_id: "{openid}_{normalizedName}"  # 同名去重：同用户同花名 pending/generating 复用
+openid: string
+name: string          # 百度识别花名（原样，生成后作为 cnName 保证下次命中）
+score: number         # 识别置信度
+baikeDesc: string     # 百度百科描述文本（LLM 参考资料）
+status: string        # pending → generating → done / failed
+speciesId: string     # done 后回填
+error: string         # failed 原因
+createdAt / updatedAt: number
+```
+
+### gen_limits（生成配额计数）
+```
+_id: "{openid}_{yyyyMMdd}"
+openid: string
+date: string
+count: number         # 当日生成次数，默认上限 3（GEN_DAILY_LIMIT）
+```
+
 ## 三、云函数
 
 | 函数 | 入参 | 说明 |
@@ -87,6 +110,9 @@ createdAt: number      # 写入时间，cleanupData 按此清理（保留 90 天
 | `initSpecies` | 无 | 管理员导入知识库（幂等） |
 | `deleteAccount` | 无 | 注销：删除该用户全部花卡、照片与图片指纹；**限流计数保留**（防刷次数） |
 | `cleanupData` | 无 | 定时触发器（每周日 03:00）清理 30 天前 rate_limits 记录 |
+| `requestFlowerGenerate` | `{ name, score, baikeDesc? }` | 未收录花生成请求：同名去重 + 配额扣减 + 建任务 |
+| `getFlowerGenerateTask` | `{ taskId }` | 生成任务状态查询（前端轮询，校验归属） |
+| `generateFlowerWorker` | 无 | 定时触发器（每 2 分钟）处理 1 个生成任务：DeepSeek 科普 + Seedream 插画 + 安全检测 + 入库 |
 
 ## 四、索引建议
 

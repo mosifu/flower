@@ -17,7 +17,9 @@ Page({
     successCard: null,
     showSearch: false,
     searchKeyword: '',
-    searchResults: []
+    searchResults: [],
+    // 未收录花生成状态：genIndex 为正在生成的候选下标（-1 表示无）
+    genIndex: -1
   },
 
   onLoad(options) {
@@ -256,6 +258,141 @@ Page({
     });
   },
 
+  async onGenerateTap(e) {
+    /**
+     * 未收录花生成入口：提交生成请求 → 进入轮询等待插画与科普生成完成
+     * @param {Object} e - 事件对象，dataset.index 为候选下标
+     * @returns {Promise<void>}
+     */
+    // 生成流程（未收录花自动生成方案）：请求建任务 → 轮询 → 完成后挂载花种到候选
+    const idx = Number(e.currentTarget.dataset.index);
+    const c = this.data.candidates[idx];
+    if (!c || c.species) return;
+    // 同一时间只允许一个生成任务，避免并发轮询混乱
+    if (this.data.genIndex >= 0) {
+      util.showToast('正在生成另一张花卡，请稍候');
+      return;
+    }
+    wx.showLoading({ title: '提交生成请求' });
+    try {
+      const res = await util.callFunction('requestFlowerGenerate', {
+        name: c.name,
+        score: c.score,
+        baikeDesc: c.baike && c.baike.description ? c.baike.description : ''
+      });
+      wx.hideLoading();
+      if (res.alreadyExists && res.speciesId) {
+        // 他人已生成过：直接取花种挂到候选，无需等待
+        await this.attachSpecies(idx, res.speciesId);
+        util.showToast('该花已在图鉴中，可直接确认入库', 'success');
+        return;
+      }
+      // 进入生成中状态，开始轮询（约 1 分钟）
+      this.setData({ genIndex: idx });
+      util.showToast('已开始生成，约需 1 分钟');
+      this.pollGenTask(res.taskId, idx);
+    } catch (e) {
+      wx.hideLoading();
+      util.showToast(e.message || '提交失败');
+    }
+  },
+
+  async attachSpecies(idx, speciesId) {
+    /**
+     * 把已入库的花种挂载到指定候选（生成完成/已存在时调用）
+     * @param {number} idx - 候选下标
+     * @param {string} speciesId - 花种 _id
+     * @returns {Promise<void>}
+     */
+    const res = await util.callFunction('getCollection', { speciesId });
+    const sp = res.list && res.list[0];
+    if (!sp) throw new Error('未找到该花');
+    const candidates = this.data.candidates.slice();
+    const old = candidates[idx];
+    candidates[idx] = {
+      name: old.name,
+      score: old.score,
+      scoreText: '已生成',
+      baike: old.baike,
+      lowConfidence: false,
+      species: {
+        _id: sp._id,
+        cnName: sp.cnName,
+        latinName: sp.latinName,
+        family: sp.family,
+        genus: sp.genus,
+        rarity: sp.rarity,
+        illustrationFileID: sp.illustrationFileID,
+        description: sp.description,
+        bloomSeasons: sp.bloomSeasons,
+        colors: sp.colors,
+        aiGenerated: sp.aiGenerated
+      }
+    };
+    this.setData({ candidates, selectedIndex: idx, hit: true });
+  },
+
+  pollGenTask(taskId, idx) {
+    /**
+     * 轮询生成任务状态（每 4s，最多 45 次约 3 分钟）
+     * @param {string} taskId - 生成任务 id
+     * @param {number} idx - 候选下标
+     * @returns {void}
+     */
+    this._genAttempts = 0;
+    this.stopGenPolling();
+    this._genTimer = setInterval(async () => {
+      this._genAttempts++;
+      // 超时兜底：任务仍在后台执行，提示用户稍后图鉴查看
+      if (this._genAttempts > 45) {
+        this.stopGenPolling();
+        this.setData({ genIndex: -1 });
+        util.showToast('生成较慢，稍后请在图鉴查看该花');
+        return;
+      }
+      try {
+        const res = await util.callFunction('getFlowerGenerateTask', { taskId });
+        const t = res.task || {};
+        if (t.status === 'done' && t.speciesId) {
+          this.stopGenPolling();
+          await this.attachSpecies(idx, t.speciesId);
+          this.setData({ genIndex: -1 });
+          util.showToast('花卡生成完成，可确认入库', 'success');
+        } else if (t.status === 'failed') {
+          this.stopGenPolling();
+          this.setData({ genIndex: -1 });
+          wx.showModal({
+            title: '生成失败',
+            content: t.error || '生成失败，请稍后重试',
+            showCancel: false
+          });
+        }
+        // pending/generating：继续等待
+      } catch (e) {
+        // 单次轮询失败忽略，下次继续
+      }
+    }, 4000);
+  },
+
+  stopGenPolling() {
+    /**
+     * 停止生成任务轮询
+     * @returns {void}
+     */
+    if (this._genTimer) {
+      clearInterval(this._genTimer);
+      this._genTimer = null;
+    }
+  },
+
+  onUnload() {
+    /**
+     * 页面卸载：清理轮询定时器，防止后台继续请求
+     * @returns {void}
+     */
+    this.stopGenPolling();
+  },
+
   async confirmSave() {
     /**
      * 确认入库：saveCard create，返回成功态
@@ -303,13 +440,16 @@ Page({
      * 重置页面状态，准备识别下一株花
      * @returns {void}
      */
+    // 同时停止生成轮询，避免残留定时器
+    this.stopGenPolling();
     this.setData({
       phase: 'idle',
       previewPath: '',
       photoFileID: '',
       candidates: [],
       successCard: null,
-      resultMsg: ''
+      resultMsg: '',
+      genIndex: -1
     });
   },
 
