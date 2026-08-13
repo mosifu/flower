@@ -45,7 +45,11 @@
   <view wx:if="{{showLogoutConfirm}}" class="modal-mask" bindtap="closeLogoutConfirm">
     <view class="modal" catchtap="noop">
       <view class="modal-title">最后确认</view>
-      <view class="modal-tip">注销将删除你全部花卡、照片与识别记录，且不可恢复。请输入「注销」以确认：</view>
+      <view class="modal-tip">
+        <view>注销将删除你全部花卡、照片与识别记录，且不可恢复。</view>
+        <view class="modal-tip-warn">⚠️ 注销后当日识别次数不会重置，无法通过注销刷新识别次数。</view>
+        <view>请输入「注销」以确认：</view>
+      </view>
       <input
         class="modal-input"
         value="{{logoutInput}}"
@@ -74,7 +78,7 @@
           4. 百度 AI 仅接收单张待识别图片用于返回识别结果，不用于其他用途。
         </view>
         <view class="privacy-p">
-          5. 如需删除全部个人数据，可在小程序内删除对应花卡；账号注销能力后续提供。
+          5. 如需删除全部个人数据，可在小程序内删除对应花卡或注销账号；注销后仅保留识别次数计数（用于防止恶意刷次数），其余数据全部删除。
         </view>
       </scroll-view>
       <view class="btn-primary modal-btn" bindtap="closePrivacy">我知道了</view>

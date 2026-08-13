@@ -85,6 +85,10 @@
   margin-bottom: 20rpx;
 }
 
+.modal-tip-warn {
+  color: #c0392b;
+}
+
 .modal-input {
   width: 100%;
   background: #f7f4ec;

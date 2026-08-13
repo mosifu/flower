@@ -2,10 +2,11 @@
  * deleteAccount 云函数
  * 职责：注销账号——删除该 openid 的全部个人数据：
  *   1. user_cards 全部花卡（含云存储中的照片原图）
- *   2. rate_limits 全部限流计数
- *   3. photo_hashes 全部图片指纹（MD5 永久去重记录）
+ *   2. photo_hashes 全部图片指纹（MD5 永久去重记录）
+ *   3. rate_limits 限流计数【保留】——防止恶意注销刷次数：
+ *      同一微信账号 openid 不变，注销后保留当日/历史计数，无法通过注销刷新 20 次配额
  * 入参：无
- * 返回：{ ok, deletedCards, deletedPhotos, deletedRateLimits, deletedHashes }
+ * 返回：{ ok, deletedCards, deletedPhotos, deletedHashes, keptRateLimits }
  * 说明：
  * - 照片按 50 个/批调用 deleteFile，支持超出单次上限的场景
  * - 数据库记录删除失败时跳过并继续（尽量删除），文件删除失败不阻断
@@ -94,16 +95,17 @@ exports.main = async () => {
     const deletedPhotos = await deleteFilesBatched(allFileIDs);
 
     // 3. 删除数据库记录（含图片指纹 photo_hashes）
+    // 注意：rate_limits 不删除——计数与 openid 绑定，保留后注销无法刷新每日 20 次配额；
+    // 其历史记录仍由 cleanupData 按 30 天保留策略自动清理
     const deletedCards = await removeAll('user_cards', { openid: OPENID });
-    const deletedRateLimits = await removeAll('rate_limits', { openid: OPENID });
     const deletedHashes = await removeAll('photo_hashes', { openid: OPENID });
 
     return {
       ok: true,
       deletedCards,
       deletedPhotos,
-      deletedRateLimits,
-      deletedHashes
+      deletedHashes,
+      keptRateLimits: true
     };
   } catch (err) {
     console.error('deleteAccount error:', err);

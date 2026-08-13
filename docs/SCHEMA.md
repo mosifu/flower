@@ -85,7 +85,7 @@ createdAt: number      # 写入时间，cleanupData 按此清理（保留 90 天
 | `getCollection` | `{ speciesId?, season?, status?, sortBy? }` | 图鉴数据 + 收集统计（状态过滤 + 排序，见技术文档） |
 | `getAchievements` | 无 | 等级、徽章、统计、今日次数、recentCards（最近收获前 6） |
 | `initSpecies` | 无 | 管理员导入知识库（幂等） |
-| `deleteAccount` | 无 | 注销：删除该用户全部花卡、限流记录与云存储照片 |
+| `deleteAccount` | 无 | 注销：删除该用户全部花卡、照片与图片指纹；**限流计数保留**（防刷次数） |
 | `cleanupData` | 无 | 定时触发器（每周日 03:00）清理 30 天前 rate_limits 记录 |
 
 ## 四、索引建议
@@ -99,7 +99,7 @@ createdAt: number      # 写入时间，cleanupData 按此清理（保留 90 天
 
 | 集合 | 保留策略 | 实现 |
 |---|---|---|
-| `rate_limits` | 保留 30 天 | `cleanupData` 定时触发器（每周日 03:00，cron `0 0 3 * * 0 *`） |
+| `rate_limits` | 保留 30 天；**注销不删除**（防恶意注销刷次数，openid 不随注销改变） | `cleanupData` 定时触发器（每周日 03:00，cron `0 0 3 * * 0 *`） |
 | `photo_hashes` | 保留 90 天 | `cleanupData` 按 `createdAt` 清理 |
 | `user-photos/` 云存储 | 随卡片生命周期 | 删卡/删照片由 saveCard 清理；识别失败由 recognizeFlower/前端清理；历史孤儿文件需控制台手动或存储生命周期策略兜底 |
 | `bd_token` | 单文档覆盖写 | 每次刷新覆盖，无需清理 |
