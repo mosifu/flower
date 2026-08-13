@@ -25,6 +25,7 @@
       <text class="tab {{status === 'all' ? 'tab-active' : ''}}" data-status="all" bindtap="onStatusTap">全部</text>
       <text class="tab {{status === 'collected' ? 'tab-active' : ''}}" data-status="collected" bindtap="onStatusTap">已收集</text>
       <text class="tab {{status === 'uncollected' ? 'tab-active' : ''}}" data-status="uncollected" bindtap="onStatusTap">未收集</text>
+      <text class="tab {{status === 'new' ? 'tab-active' : ''}}" data-status="new" bindtap="onStatusTap">新收录</text>
     </view>
     <view class="season-chips">
       <text class="chip {{season === '' ? 'chip-active' : ''}}" data-season="" bindtap="onSeasonTap">全部花期</text>
@@ -61,7 +62,7 @@
   </view>
   <view wx:else class="empty">
     <text class="empty-icon">🌷</text>
-    <view>{{status === 'uncollected' ? '这一季的花都收集完啦' : '还没有符合条件的记录'}}</view>
+    <view>{{status === 'uncollected' ? '这一季的花都收集完啦' : (status === 'new' ? '还没有新收录的花，识别未收录的花可一键生成' : '还没有符合条件的记录')}}</view>
     <view class="btn-primary empty-btn" bindtap="goRecognize">去识花</view>
   </view>
 </view>

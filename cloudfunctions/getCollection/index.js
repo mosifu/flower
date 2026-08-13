@@ -3,7 +3,8 @@
  * 职责：返回图鉴数据（species + 用户收集状态合并）与收集统计。
  * 入参：
  *   { speciesId?（详情页单查）, season?（按花期筛选）,
- *     status?（all/collected/uncollected 状态筛选，服务端过滤）,
+ *     status?（all/collected/uncollected/new 状态筛选，服务端过滤；
+ *             new = AI 自动生成新收录的花）,
  *     sortBy?（default/letter/season/latest 排序方式） }
  * 返回：{ ok, list[], stats { total, collected, rate } }
  * 说明：
@@ -69,9 +70,9 @@ function compareByLatest(a, b) {
  * @returns {number} 比较结果
  */
 function compareFlowers(a, b, status, sortBy) {
-  // 全部页签 + 默认排序：已收集优先分组；
+  // 全部/新收录页签 + 默认排序：已收集优先分组；
   // 用户主动选择其他排序（首字母/花期/稀有度等）时全体混排，不分组
-  if (status === 'all' && sortBy === 'default' && a.collected !== b.collected) {
+  if ((status === 'all' || status === 'new') && sortBy === 'default' && a.collected !== b.collected) {
     return a.collected ? -1 : 1;
   }
   // 已收集页签默认按最近遇见倒序
@@ -171,6 +172,9 @@ exports.main = async (event) => {
       list = merged.filter((s) => s.collected);
     } else if (status === 'uncollected') {
       list = merged.filter((s) => !s.collected);
+    } else if (status === 'new') {
+      // 新收录：AI 自动生成进库的花（原 60 种知识库之外）
+      list = merged.filter((s) => s.aiGenerated);
     }
 
     // 6. 排序（服务端排序：拼音排序依赖 Node full-ICU，前端 iOS 不可靠）
