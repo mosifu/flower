@@ -72,16 +72,28 @@
 }
 
 .fc-body {
-  /* 上内边距 = 插画与文字块的间距（2026-08-14 按用户要求由 18rpx 缩小至 10rpx） */
-  padding: 10rpx 20rpx 22rpx;
+  /* 上内边距 = 插画与文字块的间距（18rpx → 10rpx → 8rpx，按用户要求逐档缩小） */
+  padding: 8rpx 20rpx 22rpx;
+}
+
+.fc-name-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8rpx;
+  margin-bottom: 10rpx;
 }
 
 .fc-name {
-  display: block;
   font-size: 32rpx;
   font-weight: 700;
   color: #3e3a30;
-  margin-bottom: 10rpx;
+  /* 花名过长时省略号截断，保证右侧花期不被挤掉 */
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .fc-name-locked {
@@ -91,10 +103,7 @@
 .fc-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8rpx;
-  /* 统一预留右下角 AI 角标的宽度，保证所有卡片（含无角标的）尺寸一致 */
-  padding-right: 68rpx;
 }
 
 /* 徽章禁止 flex 收缩与换行：容器挤压时中文会逐字换行（视觉竖排） */

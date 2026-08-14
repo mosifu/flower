@@ -20,13 +20,13 @@
   </view>
 
   <view class="fc-body">
-    <text class="fc-name {{collected ? '' : 'fc-name-locked'}}">
-      {{species.cnName}}
-    </text>
-    <!-- 卡片信息：花名 + 稀有度（左）+ 花期（右） -->
+    <!-- 花名行：花名（左）+ 花期（最右）；稀有度独占一行 -->
+    <view class="fc-name-row">
+      <text class="fc-name {{collected ? '' : 'fc-name-locked'}}">{{species.cnName}}</text>
+      <text class="fc-seasons">{{bloomText}}</text>
+    </view>
     <view class="fc-meta">
       <text class="badge badge-{{species.rarity}}">{{rarityLabel}}</text>
-      <text class="fc-seasons">{{bloomText}}</text>
     </view>
   </view>
 
