@@ -1,4 +1,5 @@
 .fc-card {
+  position: relative;
   background: #fffdf7;
   border: 4rpx solid;
   border-radius: 24rpx;
@@ -91,15 +92,22 @@
   align-items: center;
   justify-content: space-between;
   gap: 8rpx;
+  /* 统一预留右下角 AI 角标的宽度，保证所有卡片（含无角标的）尺寸一致 */
+  padding-right: 68rpx;
 }
 
 .fc-ai {
+  position: absolute;
+  right: 10rpx;
+  bottom: 8rpx;
+  z-index: 2;
   font-size: 18rpx;
+  line-height: 1.4;
   color: #8a8374;
+  background: rgba(255, 253, 247, 0.92);
   border: 1rpx solid #d8d2c2;
   border-radius: 10rpx;
   padding: 2rpx 10rpx;
-  flex-shrink: 0;
 }
 
 .fc-latin {

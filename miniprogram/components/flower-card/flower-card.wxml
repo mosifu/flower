@@ -25,8 +25,10 @@
     </text>
     <view class="fc-meta">
       <text class="badge badge-{{species.rarity}}">{{rarityLabel}}</text>
-      <text wx:if="{{species.aiGenerated}}" class="fc-ai">AI 生成</text>
       <text wx:if="{{collected && species.latinName}}" class="fc-latin">{{species.latinName}}</text>
     </view>
   </view>
+
+  <!-- AI 生成角标：绝对定位在卡片右下角，不参与布局流，保证所有卡片尺寸一致 -->
+  <text wx:if="{{species.aiGenerated}}" class="fc-ai">AI 生成</text>
 </view>
