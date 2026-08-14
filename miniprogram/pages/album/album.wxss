@@ -84,6 +84,31 @@
   border-color: #9fc9a6;
 }
 
+.search-box {
+  position: relative;
+  margin-top: 18rpx;
+}
+
+.search-input {
+  background: #fffdf7;
+  border: 2rpx solid #e8e1cf;
+  border-radius: 30rpx;
+  padding: 14rpx 70rpx 14rpx 30rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.search-clear {
+  position: absolute;
+  right: 26rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9a948a;
+  font-size: 26rpx;
+  padding: 6rpx;
+}
+
 .sort-bar {
   display: flex;
   align-items: center;

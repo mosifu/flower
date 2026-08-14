@@ -16,7 +16,10 @@ Page({
       { key: 'rarity', label: '稀有度' }
     ],
     seasons: ['春', '夏', '秋', '冬'],
-    list: []
+    list: [],
+    // 搜索：按花名/别名/学名在当前页签结果内模糊过滤（前端内存过滤）
+    filtered: [],
+    searchKeyword: ''
   },
 
   onShow() {
@@ -44,7 +47,10 @@ Page({
       this.setData({
         loading: false,
         stats: res.stats,
-        list: res.list
+        list: res.list,
+        // 切页签/花期/排序后重置搜索，展示完整结果
+        searchKeyword: '',
+        filtered: res.list
       });
     } catch (e) {
       this.setData({ loading: false });
@@ -83,6 +89,34 @@ Page({
     const sortBy = e.currentTarget.dataset.sort;
     if (this.data.sortBy === sortBy) return;
     this.setData({ sortBy }, () => this.load());
+  },
+
+  onSearchInput(e) {
+    /**
+     * 搜索输入：按花名/别名/学名模糊过滤当前页签结果
+     * @param {Object} e - 输入事件，detail.value 为关键字
+     * @returns {void}
+     */
+    const kw = String(e.detail.value || '').trim();
+    const k = kw.toLowerCase();
+    // 空关键字直接展示全量；否则按 中文名/别名/学名 模糊匹配
+    const filtered = kw
+      ? this.data.list.filter(
+          (s) =>
+            (s.cnName || '').includes(kw) ||
+            (s.synonyms || []).some((x) => x.includes(kw)) ||
+            (s.latinName || '').toLowerCase().includes(k)
+        )
+      : this.data.list;
+    this.setData({ searchKeyword: kw, filtered });
+  },
+
+  clearSearch() {
+    /**
+     * 清空搜索关键字
+     * @returns {void}
+     */
+    this.setData({ searchKeyword: '', filtered: this.data.list });
   },
 
   goRecognize() {

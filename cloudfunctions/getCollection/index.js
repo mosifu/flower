@@ -155,6 +155,7 @@ exports.main = async (event) => {
         funFact: s.funFact || '',
         illustrationFileID: s.illustrationFileID || '',
         aiGenerated: !!s.aiGenerated,
+        synonyms: s.synonyms || [],
         collected: !!c,
         meetCount: c ? c.meetCount : 0,
         photos: c ? c.photos : [],

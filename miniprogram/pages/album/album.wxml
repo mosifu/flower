@@ -27,6 +27,17 @@
       <text class="tab {{status === 'uncollected' ? 'tab-active' : ''}}" data-status="uncollected" bindtap="onStatusTap">未收集</text>
       <text class="tab {{status === 'new' ? 'tab-active' : ''}}" data-status="new" bindtap="onStatusTap">新收录</text>
     </view>
+
+    <!-- 搜索：当前页签结果内按 花名/别名/学名 模糊过滤 -->
+    <view class="search-box">
+      <input
+        class="search-input"
+        placeholder="搜索花名 / 别名 / 学名"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+      <text wx:if="{{searchKeyword}}" class="search-clear" bindtap="clearSearch">✕</text>
+    </view>
     <view class="season-chips">
       <text class="chip {{season === '' ? 'chip-active' : ''}}" data-season="" bindtap="onSeasonTap">全部花期</text>
       <text
@@ -51,9 +62,9 @@
     </view>
   </view>
 
-  <view wx:if="{{list.length}}" class="grid">
+  <view wx:if="{{filtered.length}}" class="grid">
     <flower-card
-      wx:for="{{list}}"
+      wx:for="{{filtered}}"
       wx:key="_id"
       species="{{item}}"
       collected="{{item.collected}}"
@@ -62,7 +73,7 @@
   </view>
   <view wx:else class="empty">
     <text class="empty-icon">🌷</text>
-    <view>{{status === 'uncollected' ? '这一季的花都收集完啦' : (status === 'new' ? '还没有新收录的花，识别未收录的花可一键生成' : '还没有符合条件的记录')}}</view>
+    <view>{{searchKeyword ? '没有找到相关花，换个关键词试试' : (status === 'uncollected' ? '这一季的花都收集完啦' : (status === 'new' ? '还没有新收录的花，识别未收录的花可一键生成' : '还没有符合条件的记录'))}}</view>
     <view class="btn-primary empty-btn" bindtap="goRecognize">去识花</view>
   </view>
 </view>
