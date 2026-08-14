@@ -21,11 +21,13 @@ Component({
 
   data: {
     rarityClass: 'rarity-common',
-    rarityLabel: '常见'
+    rarityLabel: '常见',
+    // 花期拼接文案（WXML 不支持数组 join，在 JS 侧拼好）
+    bloomText: ''
   },
 
   observers: {
-    // 稀有度变化时同步边框 class 与标签文案
+    // 稀有度/花期变化时同步边框 class、标签文案与花期文本
     'species': function (s) {
       if (!s) return;
       const map = {
@@ -37,7 +39,8 @@ Component({
       const info = map[s.rarity] || map.common;
       this.setData({
         rarityClass: info.cls,
-        rarityLabel: info.label
+        rarityLabel: info.label,
+        bloomText: (s.bloomSeasons || []).join(' · ')
       });
     }
   },

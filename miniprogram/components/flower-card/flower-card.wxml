@@ -23,9 +23,10 @@
     <text class="fc-name {{collected ? '' : 'fc-name-locked'}}">
       {{species.cnName}}
     </text>
-    <!-- 卡片信息只保留中文：花名 + 稀有度（与原有图鉴卡片一致，不展示英文名） -->
+    <!-- 卡片信息：花名 + 稀有度（左）+ 花期（右） -->
     <view class="fc-meta">
       <text class="badge badge-{{species.rarity}}">{{rarityLabel}}</text>
+      <text class="fc-seasons">{{bloomText}}</text>
     </view>
   </view>
 

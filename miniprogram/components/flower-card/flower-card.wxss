@@ -77,8 +77,8 @@
 
 .fc-name {
   display: block;
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: 32rpx;
+  font-weight: 700;
   color: #3e3a30;
   margin-bottom: 10rpx;
 }
@@ -100,6 +100,14 @@
 .fc-meta .badge {
   flex-shrink: 0;
   white-space: nowrap;
+}
+
+/* 花期文案：稀有度行最右侧，禁止收缩换行 */
+.fc-seasons {
+  font-size: 22rpx;
+  color: #8a8374;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .fc-ai {
