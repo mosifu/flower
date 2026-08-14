@@ -6,7 +6,8 @@
  *       （云函数 60s 超时限制，单任务耗时 LLM 5~15s + 生图 10~30s）
  * 环境变量：
  *   DEEPSEEK_API_KEY（必填，DeepSeek 平台）
- *   ARK_API_KEY（必填，火山方舟）
+ *   ARK_API_KEY（必填，火山方舟 **Agent Plan 专属 API Key**——普通方舟 key 无法调用
+ *               /api/plan/v3，获取地址见部署手册）
  *   ARK_MODEL（默认 doubao-seedream-5.0-lite）
  * 流程：
  *   1. 取最早 1 个 pending 任务 → 置 generating
@@ -215,15 +216,23 @@ async function generateImage(prompt) {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${process.env.ARK_API_KEY || ''}`
   };
-  const body = {
-    model: ARK_MODEL,
-    prompt,
-    size: '1920x1920',
-    response_format: 'b64_json'
-  };
-  // 单次调用、不带 watermark 参数：
-  // 之前「失败去参重试」两次串行最坏 80s，超出云函数 60s 硬上限导致任务被强杀卡死
-  const data = await httpJson('POST', ARK_URL, JSON.stringify(body), headers, 25000);
+  // 按官方 agentplan 接口文档（docs/火山agentplan接入视觉模型.md）：
+  // size 取 "2K"（3K/4K 更贵）；output_format jpeg（控制体积，满足 imgSecCheck ≤1M）
+  // response_format url → 下载后上传云存储
+  const data = await httpJson(
+    'POST',
+    ARK_URL,
+    JSON.stringify({
+      model: ARK_MODEL,
+      prompt,
+      size: '2K',
+      output_format: 'jpeg',
+      response_format: 'url',
+      watermark: false
+    }),
+    headers,
+    25000
+  );
 
   const item = (data && data.data && data.data[0]) || {};
   if (item.b64_json) {
