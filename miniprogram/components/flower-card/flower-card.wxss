@@ -72,7 +72,8 @@
 }
 
 .fc-body {
-  padding: 18rpx 20rpx 22rpx;
+  /* 上内边距 = 插画与文字块的间距（2026-08-14 按用户要求由 18rpx 缩小至 10rpx） */
+  padding: 10rpx 20rpx 22rpx;
 }
 
 .fc-name {
