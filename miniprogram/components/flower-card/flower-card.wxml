@@ -23,9 +23,9 @@
     <text class="fc-name {{collected ? '' : 'fc-name-locked'}}">
       {{species.cnName}}
     </text>
+    <!-- 卡片信息只保留中文：花名 + 稀有度（与原有图鉴卡片一致，不展示英文名） -->
     <view class="fc-meta">
       <text class="badge badge-{{species.rarity}}">{{rarityLabel}}</text>
-      <text wx:if="{{collected && species.latinName}}" class="fc-latin">{{species.latinName}}</text>
     </view>
   </view>
 

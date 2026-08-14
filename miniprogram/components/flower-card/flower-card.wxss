@@ -96,6 +96,12 @@
   padding-right: 68rpx;
 }
 
+/* 徽章禁止 flex 收缩与换行：容器挤压时中文会逐字换行（视觉竖排） */
+.fc-meta .badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .fc-ai {
   position: absolute;
   right: 10rpx;
@@ -108,14 +114,4 @@
   border: 1rpx solid #d8d2c2;
   border-radius: 10rpx;
   padding: 2rpx 10rpx;
-}
-
-.fc-latin {
-  font-size: 20rpx;
-  color: #9a948a;
-  font-style: italic;
-  max-width: 200rpx;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
