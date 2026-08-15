@@ -80,18 +80,140 @@
   margin-top: 14rpx;
 }
 
-.recent-scroll {
-  white-space: nowrap;
-  width: 100%;
+/* ===== 识花时间线（左时间轴 + 右 swiper）===== */
+.timeline-card {
+  display: flex;
+  padding: 20rpx 0 20rpx 24rpx;
 }
 
-.recent-row {
-  display: inline-flex;
-}
-
-.recent-row flower-card {
-  width: 260rpx;
+/* 左侧时间轴：竖向节点列表，可滚动 */
+.timeline-axis {
+  width: 140rpx;
+  flex-shrink: 0;
+  max-height: 560rpx;
+  overflow-y: auto;
+  border-right: 2rpx solid #efe9da;
   margin-right: 20rpx;
+}
+
+.timeline-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 14rpx 0 14rpx 12rpx;
+}
+
+.timeline-node::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2rpx;
+  background: #efe9da;
+}
+
+.timeline-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #cbbfa0;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.timeline-node-active {
+  background: rgba(143, 201, 154, 0.15);
+  border-radius: 10rpx;
+}
+
+.timeline-node-active .timeline-dot {
+  background: #3e7d5c;
+}
+
+.timeline-label {
+  font-size: 22rpx;
+  color: #8a8374;
+}
+
+.timeline-node-active .timeline-label {
+  color: #3e7d5c;
+  font-weight: 600;
+}
+
+/* 右侧节点内容：swiper 横向滑动 */
+.timeline-swiper {
+  flex: 1;
+  height: 560rpx;
+}
+
+.timeline-slide {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-slide-head {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #3e7d5c;
+  padding: 6rpx 0 14rpx;
+}
+
+.timeline-records {
+  flex: 1;
+  overflow: hidden;
+  height: 480rpx;
+}
+
+.timeline-record {
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx dashed #efe9da;
+}
+
+.timeline-record:last-child {
+  border-bottom: none;
+}
+
+.timeline-record-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.timeline-minute {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #3e7d5c;
+}
+
+.timeline-flower-name {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.timeline-record-body {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.timeline-photo {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  background: #f5f1e4;
+  flex-shrink: 0;
+}
+
+.timeline-photo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  font-size: 24rpx;
+  overflow: hidden;
 }
 
 .empty-btn {

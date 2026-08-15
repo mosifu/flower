@@ -35,6 +35,9 @@ funFact: string       # 趣味小知识
 synonyms: []          # 别名，用于识别结果匹配
 illustrationFileID: string  # 水彩插画（云存储 fileID 或 https URL）
 enabled: bool         # 是否启用
+aiGenerated: bool     # AI 生成的新收录花（未收录花自动生成流程入库，图鉴「新收录」页签）
+source: string        # 来源标记，知识库为 'manual'，AI 生成为 'llm'
+createdAt: number     # 入库时间戳（AI 生成花由 worker 写入）
 ```
 
 ### user_cards
@@ -106,7 +109,7 @@ count: number         # 当日生成次数，默认上限 3（GEN_DAILY_LIMIT）
 | `recognizeFlower` | `{ fileID }` | 限流（事务）→ 内容安全 → 百度植物识别 → 知识库匹配；服务端原因失败退款并清理文件 |
 | `saveCard` | `{ action, speciesId, ... }` | action: create / addPhoto / updateNote / updateLocation / deletePhoto / deleteCard；create/addPhoto 内容安全检测；删除时清理云存储；输入校验 |
 | `getCollection` | `{ speciesId?, season?, status?, sortBy? }` | 图鉴数据 + 收集统计（状态过滤 + 排序，见技术文档） |
-| `getAchievements` | 无 | 等级、徽章、统计、今日次数、recentCards（最近收获前 6） |
+| `getAchievements` | 无 | 等级、33 枚徽章（含读 `flower_gen_tasks` 的新收录花成就）、统计、今日次数、recentCards（最近收获前 6）、timeline（识花时间线，按小时分组，见识花时间线方案） |
 | `initSpecies` | 无 | 管理员导入知识库（幂等） |
 | `deleteAccount` | 无 | 注销：删除该用户全部花卡、照片与图片指纹；**限流计数保留**（防刷次数） |
 | `cleanupData` | 无 | 定时触发器（每周日 03:00）清理 30 天前 rate_limits 记录 |

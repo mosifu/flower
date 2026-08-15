@@ -27,19 +27,56 @@
     </view>
   </view>
 
-  <view class="section-title">最近收获</view>
-  <scroll-view wx:if="{{recentCards.length}}" scroll-x class="recent-scroll">
-    <view class="recent-row">
-      <flower-card
-        wx:for="{{recentCards}}"
-        wx:key="_id"
-        species="{{item}}"
-        collected="{{true}}"
-        meetCount="{{item.meetCount}}"
-        compact="{{true}}"
-      />
+  <!-- 识花时间线：左时间轴（按小时分组）+ 右节点内容（swiper 左右滑动），照片可预览 -->
+  <view class="section-title">识花时间线</view>
+  <view wx:if="{{timeline.length}}" class="card timeline-card">
+    <view class="timeline-axis">
+      <view
+        wx:for="{{timeline}}"
+        wx:key="hourTime"
+        class="timeline-node {{timelineIndex === index ? 'timeline-node-active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onTimelineTap"
+      >
+        <view class="timeline-dot"></view>
+        <text class="timeline-label">{{item.hourLabel}}</text>
+      </view>
     </view>
-  </scroll-view>
+    <swiper
+      class="timeline-swiper"
+      current="{{timelineIndex}}"
+      bindchange="onTimelineChange"
+      circular="{{false}}"
+    >
+      <swiper-item wx:for="{{timeline}}" wx:key="hourTime">
+        <view class="timeline-slide">
+          <view class="timeline-slide-head">{{item.hourLabel}}</view>
+          <scroll-view scroll-y class="timeline-records">
+            <view wx:for="{{item.records}}" wx:for-item="rec" wx:key="time" class="timeline-record">
+              <view class="timeline-record-head">
+                <text class="timeline-minute">{{rec.minuteLabel}}</text>
+                <text class="timeline-flower-name">{{rec.species.cnName}}</text>
+                <text class="muted">第 {{rec.meetIndex}} 次遇见</text>
+              </view>
+              <view class="timeline-record-body">
+                <image
+                  class="timeline-photo"
+                  src="{{rec.photo.fileID}}"
+                  mode="aspectFill"
+                  data-fileid="{{rec.photo.fileID}}"
+                  bindtap="onTimelinePhotoTap"
+                />
+                <view class="timeline-photo-info">
+                  <text wx:if="{{rec.photo.location}}" class="muted">📍 {{rec.photo.location}}</text>
+                  <text wx:if="{{rec.photo.note}}" class="muted">{{rec.photo.note}}</text>
+                </view>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
   <view wx:else class="empty">
     <text class="empty-icon">🌱</text>
     <view>还没有收集记录，快去拍第一朵花吧</view>

@@ -10,3 +10,5 @@ __pycache__/
 ids.json
 # 插画生成产物（60 张约 21.5MB，可用 scripts/seedream_generate.py 重新生成；运行时走云存储 fileID）
 miniprogram/images/species/
+# 本地工具配置（Claude Code 等），不提交
+.claude/

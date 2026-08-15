@@ -101,6 +101,43 @@ function formatDate(ts) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+function formatHourLabel(ts) {
+  /**
+   * 时间线时间轴标签：按小时 -> 今天 HH:00 / 昨天 HH:00 / MM-DD HH:00 / YYYY-MM-DD HH:00
+   * @param {number} ts - 毫秒时间戳
+   * @returns {string} 时间轴节点标签；无值返回空串
+   */
+  if (!ts) return '';
+  // 与云函数分组键一致用北京时区（+8h 取 UTC 字段），避免设备时区导致标签与分组错位
+  const d = new Date(ts + 8 * 60 * 60 * 1000);
+  const y = d.getUTCFullYear();
+  const mo = pad(d.getUTCMonth() + 1);
+  const day = pad(d.getUTCDate());
+  const hh = pad(d.getUTCHours());
+  // 今天/昨天按北京日历日判断
+  const now = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  const ymd = (dt) => `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  const today = ymd(now);
+  const yesterday = ymd(new Date(Date.now() - 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000));
+  const cur = `${y}-${mo}-${day}`;
+  if (cur === today) return `今天 ${hh}:00`;
+  if (cur === yesterday) return `昨天 ${hh}:00`;
+  if (y === now.getUTCFullYear()) return `${mo}-${day} ${hh}:00`;
+  return `${y}-${mo}-${day} ${hh}:00`;
+}
+
+function formatMinuteLabel(ts) {
+  /**
+   * 时间线节点内记录标签：精确到分钟 HH:mm（同一节点内多条记录据此区分先后）
+   * @param {number} ts - 毫秒时间戳
+   * @returns {string} HH:mm；无值返回空串
+   */
+  if (!ts) return '';
+  // 北京时区口径，与云函数分组键一致
+  const d = new Date(ts + 8 * 60 * 60 * 1000);
+  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
 function todayStr() {
   /**
    * 生成今日 yyyyMMdd（与云函数限流键格式一致）
@@ -189,6 +226,8 @@ module.exports = {
   uploadImage,
   callFunction,
   formatDate,
+  formatHourLabel,
+  formatMinuteLabel,
   todayStr,
   rarityInfo,
   showToast,
