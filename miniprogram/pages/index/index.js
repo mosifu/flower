@@ -59,23 +59,38 @@ Page({
 
   onChoose(e) {
     /**
-     * 识花入口：拍照 / 相册选图后跳转识别页
+     * 识花入口：拍照单张 / 相册多选（≤5 张批量识别）后跳转识别页
      * @param {Object} e - 事件对象，dataset.source 为 camera / album
      * @returns {void}
      */
-    // 拍照 / 相册二选一，选图后把本地路径带给识别页处理
     const source = e.currentTarget.dataset.source;
+    if (source === 'camera') {
+      // 拍照保持单张：选图后把本地路径带给识别页处理
+      util
+        .chooseOneImage(['camera'])
+        .then((tempPath) => {
+          wx.navigateTo({
+            url: `/pages/recognize/recognize?tempPath=${encodeURIComponent(tempPath)}`
+          });
+        })
+        .catch((err) => {
+          if (err.errMsg && err.errMsg.indexOf('cancel') > -1) return;
+          util.showToast('无法打开相机，请检查权限');
+        });
+      return;
+    }
+    // 相册多选（批量识别方案：单次 ≤5 张）：多图路径逗号拼接传给识别页
     util
-      .chooseOneImage(source === 'camera' ? ['camera'] : ['album'])
-      .then((tempPath) => {
+      .chooseMultiImages(5)
+      .then((paths) => {
         wx.navigateTo({
-          url: `/pages/recognize/recognize?tempPath=${encodeURIComponent(tempPath)}`
+          url: `/pages/recognize/recognize?tempPaths=${encodeURIComponent(paths.join(','))}`
         });
       })
       .catch((err) => {
         // 用户主动取消不提示，其余失败提示检查权限
         if (err.errMsg && err.errMsg.indexOf('cancel') > -1) return;
-        util.showToast('无法打开相机/相册，请检查权限');
+        util.showToast('无法打开相册，请检查权限');
       });
   },
 
@@ -97,7 +112,7 @@ Page({
 
   onTimelineChange(e) {
     /**
-     * swiper 滑动切换时间节点：同步左侧时间轴高亮
+     * swiper 纵向滑动切换时间节点：同步左侧时间轴高亮
      * @param {Object} e - 事件对象，e.detail.current 为当前节点下标
      * @returns {void}
      */

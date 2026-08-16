@@ -164,6 +164,227 @@
   margin-top: 20rpx;
 }
 
+/* ===== 批量识别（相册多选 ≤5 张逐张串行）===== */
+.batch-progress-img {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 16rpx;
+  margin-top: 24rpx;
+  background: #f5f1e4;
+}
+
+.batch-panel {
+  padding: 24rpx;
+}
+
+.batch-head {
+  margin-bottom: 20rpx;
+}
+
+/* 每张照片下方的分割线：与其他照片清晰隔开 */
+.batch-item {
+  border-bottom: 2rpx solid #e4dcc8;
+  padding-bottom: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.batch-item:last-child {
+  border-bottom: none;
+}
+
+/* 张头：照片固定尺寸居左 + 识别结果居右 */
+.batch-item-head {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+/* 左侧照片：统一固定尺寸 */
+.batch-thumb {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 14rpx;
+  background: #f5f1e4;
+  flex-shrink: 0;
+  box-shadow: 0 4rpx 10rpx rgba(120, 100, 60, 0.12);
+}
+
+.batch-item-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  overflow: hidden;
+}
+
+.batch-item-name {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+/* 识别出的花：可点击弹窗核对 */
+.batch-item-flower {
+  color: #3e7d5c;
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.batch-item-info-hint {
+  font-size: 22rpx;
+  color: #8a8374;
+  font-weight: 400;
+}
+
+/* 稀有度行 */
+.batch-item-rarity {
+  font-size: 24rpx;
+  color: #8a8374;
+}
+
+.batch-item-fail {
+  color: #c0392b;
+  font-weight: 400;
+}
+
+.batch-expand-arrow {
+  font-size: 20rpx;
+  flex-shrink: 0;
+}
+
+.batch-item-ops {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.batch-op-btn {
+  font-size: 24rpx;
+  padding: 10rpx 28rpx;
+  margin: 0;
+}
+
+.batch-candidates {
+  margin-top: 16rpx;
+  background: #f7f4ec;
+  border-radius: 12rpx;
+  padding: 12rpx;
+}
+
+.batch-candidate {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 10rpx 12rpx;
+  border-radius: 10rpx;
+  font-size: 26rpx;
+}
+
+.batch-candidate-active {
+  background: rgba(143, 201, 154, 0.25);
+}
+
+.batch-candidate-radio {
+  color: #3e7d5c;
+  font-size: 24rpx;
+}
+
+/* ===== 批量清单三列布局（照片 | 候选Top3+单选 | 提示区）===== */
+.batch-item-head {
+  display: flex;
+  align-items: stretch;
+  gap: 16rpx;
+}
+
+/* 中列：候选 Top3 + 单选 */
+.batch-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.batch-candidate-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 10rpx;
+  border-radius: 10rpx;
+  font-size: 26rpx;
+  background: #f7f4ec;
+}
+
+.batch-candidate-row-active {
+  background: rgba(143, 201, 154, 0.25);
+}
+
+/* 单选按钮：三候选互斥 */
+.batch-radio {
+  width: 32rpx;
+  height: 32rpx;
+  line-height: 30rpx;
+  text-align: center;
+  border-radius: 50%;
+  border: 2rpx solid #cbbfa0;
+  color: transparent;
+  font-size: 20rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.batch-radio-on {
+  border-color: #3e7d5c;
+  background: #3e7d5c;
+  color: #fff;
+}
+
+/* 花名：可点击查看百科详情 */
+.batch-candidate-row-name {
+  color: #3e7d5c;
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 右列：提示区 */
+.batch-item-tip {
+  width: 170rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.batch-tip-default {
+  font-size: 22rpx;
+  color: #9a948a;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.batch-tip-uncollected {
+  width: 100%;
+}
+
+.batch-tip-uncollected .gen-btn {
+  font-size: 22rpx;
+  padding: 10rpx 12rpx;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.gen-btn-disabled {
+  opacity: 0.5;
+}
+
+.batch-confirm-btn {
+  margin-top: 8rpx;
+}
+
 .success-wrap {
   text-align: center;
   padding-top: 40rpx;
@@ -220,4 +441,167 @@
 .success-btn {
   width: 420rpx;
   margin: 20rpx auto 0;
+}
+
+/* 回到首页按钮：比「再去识一株」更弱化的次级入口，避免两个幽灵按钮视觉粘连 */
+.success-home-btn {
+  opacity: 0.7;
+  margin-top: 4rpx;
+}
+/* ===== 花信息弹窗（批量清单核对用）===== */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  width: 600rpx;
+  max-height: 72vh;
+  /* 弹窗背景与主题浅绿色一致（#eaf5ea 为全局主题绿 light 色） */
+  background: #eaf5ea;
+  border-radius: 24rpx;
+  padding: 32rpx 28rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #3e7d5c;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+}
+
+.modal-btn {
+  width: 100%;
+}
+
+.flower-info-line {
+  font-size: 26rpx;
+  color: #6f6a5f;
+  line-height: 1.8;
+}
+
+.flower-info-desc {
+  font-size: 26rpx;
+  color: #4a463c;
+  line-height: 1.7;
+  margin-top: 16rpx;
+  border-top: 1rpx dashed #e4dcc8;
+  padding-top: 16rpx;
+}/* ===== 批量入库进度（saving 转圈 / done ✓ / fail）===== */
+.batch-saving-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 10rpx;
+  background: #f7f4ec;
+  border-radius: 10rpx;
+}
+
+/* 动态转圈：CSS 圆环动画 */
+.batch-spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 4rpx solid #d5cbb0;
+  border-top-color: #3e7d5c;
+  border-radius: 50%;
+  animation: batch-spin 0.9s linear infinite;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+@keyframes batch-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.batch-done-mark {
+  width: 32rpx;
+  height: 32rpx;
+  line-height: 30rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #3e7d5c;
+  color: #fff;
+  font-size: 20rpx;
+  flex-shrink: 0;
+}
+
+.batch-saving-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #3e7d5c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 提示区状态文案 */
+.batch-tip-saving {
+  font-size: 22rpx;
+  color: #8a8374;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.batch-tip-done {
+  font-size: 22rpx;
+  color: #3e7d5c;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.batch-tip-fail {
+  font-size: 22rpx;
+  color: #c0392b;
+  text-align: center;
+  line-height: 1.5;
+}
+/* 重复照片：删除按钮 + 提示 */
+.batch-tip-duplicate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  width: 100%;
+}
+
+.batch-del-btn {
+  font-size: 22rpx;
+  padding: 8rpx 24rpx;
+  margin: 0;
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+.batch-tip-dup-note {
+  font-size: 20rpx;
+  color: #9a948a;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* success 页多花 swiper */
+.success-swiper {
+  height: 620rpx;
+}
+
+.success-indicator {
+  text-align: center;
+  margin-top: 12rpx;
+  font-size: 24rpx;
 }

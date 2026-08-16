@@ -90,7 +90,7 @@
 .timeline-axis {
   width: 140rpx;
   flex-shrink: 0;
-  max-height: 560rpx;
+  max-height: 620rpx;
   overflow-y: auto;
   border-right: 2rpx solid #efe9da;
   margin-right: 20rpx;
@@ -141,10 +141,10 @@
   font-weight: 600;
 }
 
-/* 右侧节点内容：swiper 横向滑动 */
+/* 右侧节点内容：swiper 纵向滑动（上下切换时间节点） */
 .timeline-swiper {
   flex: 1;
-  height: 560rpx;
+  height: 620rpx;
 }
 
 .timeline-slide {
@@ -160,10 +160,10 @@
   padding: 6rpx 0 14rpx;
 }
 
+/* 节点内记录：普通布局（上下滑动由 swiper 接管，不再滚动）；随 slide 高度自然展示 */
 .timeline-records {
   flex: 1;
   overflow: hidden;
-  height: 480rpx;
 }
 
 .timeline-record {

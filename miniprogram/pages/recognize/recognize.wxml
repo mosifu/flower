@@ -11,6 +11,119 @@
     <view>正在识别这朵花，请稍候…</view>
   </view>
 
+  <!-- 批量识别中：逐张串行进度 -->
+  <view wx:elif="{{phase === 'batch'}}" class="empty batch-progress">
+    <text class="empty-icon loading-icon">🌸</text>
+    <view>正在识别第 {{batchIndex + 1}} / {{batchTotal}} 张，请稍候…</view>
+    <image wx:if="{{batchList[batchIndex].tempPath}}" class="batch-progress-img" src="{{batchList[batchIndex].tempPath}}" mode="aspectFill" />
+  </view>
+
+  <!-- 批量清单确认：逐张确认入库（批量识别方案） -->
+  <block wx:elif="{{phase === 'batch_result'}}">
+    <view class="quota-bar muted">今日剩余识别次数：{{remaining}} / {{limit}}</view>
+    <view class="card batch-panel">
+      <view class="batch-head">
+        <text class="section-title-inline">批量识别结果（{{batchTotal}} 张）</text>
+      </view>
+
+      <view wx:for="{{batchList}}" wx:key="index" class="batch-item">
+        <!-- 三列布局：左照片 | 中候选Top3+单选 | 右提示区 -->
+        <view class="batch-item-head">
+          <!-- 左：照片固定尺寸，点击全屏预览 -->
+          <image class="batch-thumb" src="{{item.tempPath}}" mode="aspectFill" data-index="{{index}}" bindtap="onBatchPreviewPhoto" />
+          <!-- 中：候选 Top3 + 单选（互斥），点击仅选中不弹窗；入库中/成功后收缩为勾选花 + 转圈/✓ -->
+          <view class="batch-item-main">
+            <block wx:if="{{item.status === 'ok' && item.candidates.length && item.saveState === 'idle'}}">
+              <view
+                wx:for="{{item.candidates}}"
+                wx:for-item="c"
+                wx:for-index="ci"
+                wx:key="index"
+                class="batch-candidate-row {{item.selectedIndex === ci ? 'batch-candidate-row-active' : ''}}"
+                data-index="{{index}}"
+                data-cindex="{{ci}}"
+                bindtap="onBatchSelectCandidate"
+              >
+                <!-- 单选按钮：三候选互斥 -->
+                <view class="batch-radio {{item.selectedIndex === ci ? 'batch-radio-on' : ''}}">{{item.selectedIndex === ci ? '●' : '○'}}</view>
+                <!-- 花名：点击查看百科详情（不触发选中） -->
+                <text
+                  class="batch-candidate-row-name"
+                  data-index="{{index}}"
+                  data-cindex="{{ci}}"
+                  catchtap="onBatchFlowerNameTap"
+                >{{c.species ? c.species.cnName : c.name}}</text>
+                <text class="muted">{{c.scoreText}}</text>
+              </view>
+            </block>
+            <!-- 入库中/成功：只显示勾选的花 + 转圈/✓ -->
+            <block wx:elif="{{item.status === 'ok' && item.saveState === 'saving'}}">
+              <view class="batch-saving-row">
+                <view class="batch-spinner"></view>
+                <text class="batch-saving-name">{{item.candidates[item.selectedIndex].species ? item.candidates[item.selectedIndex].species.cnName : item.candidates[item.selectedIndex].name}}</text>
+              </view>
+            </block>
+            <block wx:elif="{{item.status === 'ok' && item.saveState === 'done'}}">
+              <view class="batch-saving-row">
+                <view class="batch-done-mark">✓</view>
+                <text class="batch-saving-name">{{item.candidates[item.selectedIndex].species ? item.candidates[item.selectedIndex].species.cnName : item.candidates[item.selectedIndex].name}}</text>
+              </view>
+            </block>
+            <block wx:elif="{{item.status === 'ok' && item.saveState === 'fail'}}">
+              <view class="batch-item-name batch-item-fail">❌ {{item.failMsg || '入库失败'}}</view>
+            </block>
+            <view wx:elif="{{item.status === 'ok' && item.genState === 'generating'}}" class="batch-item-name muted">✨ 生成中…</view>
+            <view wx:elif="{{item.status === 'ok'}}" class="batch-item-name muted">暂未收录图鉴</view>
+            <view wx:else class="batch-item-name batch-item-fail">❌ {{item.failMsg || '识别失败'}}</view>
+          </view>
+          <!-- 右：提示区——默认「点击花名查看详情」；选中未收录花显示未收录提示；入库中/成功显示进度文案；重复照片显示删除 -->
+          <view class="batch-item-tip">
+            <!-- 重复照片：删除按钮 + 提示（未识别的照片不会入库） -->
+            <view wx:if="{{item.status === 'fail' && item.duplicate && item.saveState === 'idle'}}" class="batch-tip-duplicate">
+              <view class="btn-ghost batch-op-btn batch-del-btn" data-index="{{index}}" bindtap="onBatchRemoveDuplicate">删除</view>
+              <view class="batch-tip-dup-note">未识别的照片不会入库</view>
+            </view>
+            <view wx:elif="{{item.status === 'ok' && item.candidates.length}}">
+              <view wx:if="{{item.saveState === 'saving'}}" class="batch-tip-saving">
+                {{item.candidates[item.selectedIndex].species ? '正在入库中，请稍等' : '该花还未收录，正在生成'}}
+              </view>
+              <view wx:elif="{{item.saveState === 'done'}}" class="batch-tip-done">{{item.candidates[item.selectedIndex].species.cnName}} 入库成功</view>
+              <view wx:elif="{{item.saveState === 'fail'}}" class="batch-tip-fail">入库失败</view>
+              <view wx:elif="{{item.candidates[item.selectedIndex].species}}" class="batch-tip-default">点击花名查看花朵详情</view>
+              <view wx:else class="batch-tip-uncollected">
+                <view wx:if="{{item.genState === 'generating'}}" class="gen-btn gen-btn-pending">✨ 生成中…约需 1 分钟</view>
+                <view wx:elif="{{item.genState === 'no_quota'}}" class="gen-btn gen-btn-disabled">今日生成次数已用完</view>
+                <view wx:else class="gen-btn" data-index="{{index}}" bindtap="onBatchGenerateTap">✨ 收录并生成花卡（AI 绘制插画与科普）</view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 失败张操作：重复照片显示「继续识别」（消耗次数）；真失败显示「换一张重试 + 保存到相册」 -->
+        <view wx:if="{{item.status === 'fail' && item.duplicate}}" class="batch-item-ops">
+          <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchRetryDuplicate">继续识别（消耗 1 次）</view>
+        </view>
+        <view wx:elif="{{item.status === 'fail'}}" class="batch-item-ops">
+          <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="retryBatchItem">换一张重试</view>
+          <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchSavePhoto">保存到相册</view>
+        </view>
+      </view>
+
+      <view class="btn-primary batch-confirm-btn" bindtap="confirmBatchSave">确认全部入库</view>
+    </view>
+
+    <!-- 花信息弹窗：点击候选花名弹出，统一展示百科描述（去掉学名/科属/稀有度/花期/花色等空字段） -->
+    <view wx:if="{{showFlowerInfo}}" class="modal-mask" bindtap="closeFlowerInfo">
+      <view class="modal" catchtap="noop">
+        <view class="modal-title">{{flowerInfo.cnName}}</view>
+        <scroll-view scroll-y class="modal-body">
+          <view class="flower-info-desc">{{flowerInfo.description || '暂无描述'}}</view>
+        </scroll-view>
+        <view class="btn-primary modal-btn" bindtap="closeFlowerInfo">知道了</view>
+      </view>
+    </view>
+  </block>
+
   <block wx:elif="{{phase === 'result'}}">
     <image class="preview" src="{{previewPath}}" mode="aspectFill" />
     <view class="quota-bar muted">今日剩余识别次数：{{remaining}} / {{limit}}</view>
@@ -90,8 +203,27 @@
 
   <block wx:elif="{{phase === 'success'}}">
     <view class="success-wrap fade-in">
-      <view class="success-badge">{{successCard.newCard ? '🎉 收录成功' : '💮 再次遇见'}}</view>
-      <view class="success-card rarity-{{successCard.rarity}}">
+      <view class="success-badge">{{successCards.length > 1 ? '🎉 收录成功 ' + successCards.length + ' 朵' : (successCard.newCard ? '🎉 收录成功' : '💮 再次遇见')}}</view>
+      <!-- 多花收录：swiper 左右切换展示本次收录的花 -->
+      <swiper
+        wx:if="{{successCards.length > 1}}"
+        class="success-swiper"
+        current="{{successIndex}}"
+        bindchange="onSuccessChange"
+      >
+        <swiper-item wx:for="{{successCards}}" wx:key="_id">
+          <view class="success-card rarity-{{item.rarity}}">
+            <image wx:if="{{item.illustrationFileID}}" class="success-img" src="{{item.illustrationFileID}}" mode="aspectFill" />
+            <view wx:else class="success-img success-placeholder">🌷</view>
+            <view class="success-info">
+              <text class="success-name">{{item.cnName}}</text>
+              <text class="muted">{{item.latinName}}</text>
+              <text class="badge badge-{{item.rarity}} success-rarity">第 {{item.meetCount}} 次遇见</text>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+      <view wx:else class="success-card rarity-{{successCard.rarity}}">
         <image wx:if="{{successCard.illustrationFileID}}" class="success-img" src="{{successCard.illustrationFileID}}" mode="aspectFill" />
         <view wx:else class="success-img success-placeholder">🌷</view>
         <view class="success-info">
@@ -100,8 +232,10 @@
           <text class="badge badge-{{successCard.rarity}} success-rarity">第 {{successCard.meetCount}} 次遇见</text>
         </view>
       </view>
+      <view wx:if="{{successCards.length > 1}}" class="success-indicator muted">{{successIndex + 1}} / {{successCards.length}}</view>
       <view class="btn-primary success-btn" bindtap="viewCard">查看花卡详情</view>
       <view class="btn-ghost success-btn" bindtap="again">再去识一株</view>
+      <view class="btn-ghost success-btn success-home-btn" bindtap="goHome">回到首页</view>
     </view>
   </block>
 </view>

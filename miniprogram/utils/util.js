@@ -208,6 +208,49 @@ function chooseOneImage(sourceType) {
 }
 
 /**
+ * 多图选择封装（相册批量识别用，单次最多 5 张）
+ * @param {number} count - 选择张数上限（≤5）
+ * @returns {Promise<string[]>} 图片本地路径数组
+ */
+function chooseMultiImages(count) {
+  /**
+   * 相册多选：批量识别入口（批量识别方案：单次 ≤5 张）
+   * @param {number} count - 最多可选张数
+   * @returns {Promise<string[]>} 图片本地路径数组
+   */
+  return new Promise((resolve, reject) => {
+    if (wx.chooseMedia) {
+      wx.chooseMedia({
+        count: Math.max(1, Math.min(count || 5, 5)),
+        mediaType: ['image'],
+        sourceType: ['album'],
+        sizeType: ['compressed'],
+        success: (res) => {
+          const paths = (res.tempFiles || [])
+            .map((f) => f.tempFilePath)
+            .filter(Boolean);
+          if (paths.length) resolve(paths);
+          else reject(new Error('未获取到图片'));
+        },
+        fail: reject
+      });
+    } else {
+      // 低版本基础库降级：chooseImage 同样支持多选
+      wx.chooseImage({
+        count: Math.max(1, Math.min(count || 5, 5)),
+        sourceType: ['album'],
+        sizeType: ['compressed'],
+        success: (res) => {
+          if (res.tempFilePaths && res.tempFilePaths.length) resolve(res.tempFilePaths);
+          else reject(new Error('未获取到图片'));
+        },
+        fail: reject
+      });
+    }
+  });
+}
+
+/**
  * 删除云存储文件（静默失败，不阻断主流程）
  * @param {string} fileID - 云存储文件 ID
  * @returns {Promise<void>}
@@ -232,5 +275,6 @@ module.exports = {
   rarityInfo,
   showToast,
   chooseOneImage,
+  chooseMultiImages,
   deleteCloudFile
 };

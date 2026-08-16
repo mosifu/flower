@@ -7,7 +7,7 @@
 
   <view class="actions">
     <view class="action-main btn-primary" data-source="camera" bindtap="onChoose">📷 拍照识花</view>
-    <view class="action-sub btn-ghost" data-source="album" bindtap="onChoose">🖼 从相册选择</view>
+    <view class="action-sub btn-ghost" data-source="album" bindtap="onChoose">🖼 从相册选择（可多选）</view>
     <view class="quota muted">
       今日还可识别 <text class="quota-num">{{todayRemaining}}</text> 次
     </view>
@@ -47,11 +47,13 @@
       current="{{timelineIndex}}"
       bindchange="onTimelineChange"
       circular="{{false}}"
+      vertical
     >
       <swiper-item wx:for="{{timeline}}" wx:key="hourTime">
         <view class="timeline-slide">
           <view class="timeline-slide-head">{{item.hourLabel}}</view>
-          <scroll-view scroll-y class="timeline-records">
+          <!-- 节点内记录：上下滑动由 swiper 接管，故用普通 view 布局（不再内嵌 scroll-y，避免手势冲突） -->
+          <view class="timeline-records">
             <view wx:for="{{item.records}}" wx:for-item="rec" wx:key="time" class="timeline-record">
               <view class="timeline-record-head">
                 <text class="timeline-minute">{{rec.minuteLabel}}</text>
@@ -72,7 +74,7 @@
                 </view>
               </view>
             </view>
-          </scroll-view>
+          </view>
         </view>
       </swiper-item>
     </swiper>
