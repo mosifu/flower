@@ -66,6 +66,29 @@
 .rarity-bar-rare { background: #5b9bd5; }
 .rarity-bar-common { background: #5fae5f; }
 
+/* 徽章筛选：已拥有 / 未拥有 胶囊按钮，选中态高亮，均不选=全部 */
+.badge-filter {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.filter-chip {
+  padding: 12rpx 32rpx;
+  border-radius: 999rpx;
+  background: #fffdf7;
+  border: 2rpx solid #e4dcc8;
+  color: #8a8374;
+  font-size: 26rpx;
+}
+
+.filter-chip-active {
+  background: #3e7d5c;
+  border-color: #3e7d5c;
+  color: #ffffff;
+  font-weight: 600;
+}
+
 .badge-grid {
   display: flex;
   flex-wrap: wrap;

@@ -34,9 +34,22 @@
     </view>
 
     <view class="section-title">成就徽章</view>
+    <!-- 徽章筛选：已拥有 / 未拥有 互斥，均不选=全部；再次点击同项取消选中 -->
+    <view class="badge-filter">
+      <view
+        class="filter-chip {{badgeFilter === 'owned' ? 'filter-chip-active' : ''}}"
+        data-filter="owned"
+        bindtap="setBadgeFilter"
+      >已拥有</view>
+      <view
+        class="filter-chip {{badgeFilter === 'unowned' ? 'filter-chip-active' : ''}}"
+        data-filter="unowned"
+        bindtap="setBadgeFilter"
+      >未拥有</view>
+    </view>
     <view class="badge-grid">
       <view
-        wx:for="{{badges}}"
+        wx:for="{{displayBadges}}"
         wx:key="code"
         class="badge-cell {{item.unlocked ? 'badge-unlocked' : 'badge-locked'}}"
       >
