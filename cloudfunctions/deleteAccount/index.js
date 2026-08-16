@@ -5,8 +5,9 @@
  *   2. photo_hashes 全部图片指纹（MD5 永久去重记录）
  *   3. rate_limits 限流计数【保留】——防止恶意注销刷次数：
  *      同一微信账号 openid 不变，注销后保留当日/历史计数，无法通过注销刷新 20 次配额
+ *   4. feedback 反馈记录【匿名化保留】——openid 置空，记录留档供开发者回溯；用户不可见
  * 入参：无
- * 返回：{ ok, deletedCards, deletedPhotos, deletedHashes, keptRateLimits }
+ * 返回：{ ok, deletedCards, deletedPhotos, deletedHashes, anonymizedFeedback, keptRateLimits }
  * 说明：
  * - 照片按 50 个/批调用 deleteFile，支持超出单次上限的场景
  * - 数据库记录删除失败时跳过并继续（尽量删除），文件删除失败不阻断
@@ -39,6 +40,25 @@ async function deleteFilesBatched(fileList) {
     }
   }
   return deleted;
+}
+
+/**
+ * 匿名化该用户的全部反馈记录（openid 置空，记录保留在案供开发者留档）
+ * @param {string} openid - 用户唯一标识
+ * @returns {Promise<number>} 匿名化的记录数
+ */
+async function anonymizeFeedback(openid) {
+  // 反馈是给开发者的数据：注销后用户不可见（openid 置空后按 openid 查不到），
+  // 但记录不删除，便于回溯问题；分批更新，防单次更新上限
+  let updated = 0;
+  const col = db.collection('feedback');
+  for (let i = 0; i < 100; i++) {
+    const res = await col.where({ openid }).limit(1000).update({ data: { openid: '' } });
+    const n = (res.stats && res.stats.updated) || 0;
+    updated += n;
+    if (n < 1000) break;
+  }
+  return updated;
 }
 
 /**
@@ -100,11 +120,15 @@ exports.main = async () => {
     const deletedCards = await removeAll('user_cards', { openid: OPENID });
     const deletedHashes = await removeAll('photo_hashes', { openid: OPENID });
 
+    // 4. 匿名化反馈记录（openid 置空，记录保留在案；用户注销后不可见自己的旧反馈）
+    const anonymizedFeedback = await anonymizeFeedback(OPENID);
+
     return {
       ok: true,
       deletedCards,
       deletedPhotos,
       deletedHashes,
+      anonymizedFeedback,
       keptRateLimits: true
     };
   } catch (err) {

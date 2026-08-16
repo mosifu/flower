@@ -11,6 +11,8 @@
 | `photo_hashes` | 图片 MD5 指纹（永久去重） | 仅管理端可读写 |
 | `flower_gen_tasks` | 未收录花生成任务（LLM+Seedream） | 仅管理端可读写 |
 | `gen_limits` | 每日生成配额计数 | 仅管理端可读写 |
+| `feedback` | 用户意见反馈记录 | 仅管理端可读写 |
+| `feedback_limits` | 每日反馈条数限流（上限 5） | 仅管理端可读写 |
 
 > 注：前端全部通过云函数读写数据，集合统一设「仅管理端可读写」最安全。
 
@@ -94,6 +96,24 @@ error: string         # failed 原因
 createdAt / updatedAt: number
 ```
 
+### feedback（意见反馈）
+```
+_id: string            # 自动生成
+openid: string        # 提交者 openid；注销时 deleteAccount 置空匿名化（记录保留）
+type: string          # suggestion 体验建议 | bug 问题反馈 | other 其他
+content: string       # 反馈内容（≤500 字）
+photos: []            # 截图 fileID 数组（≤3 张，云存储 feedback-photos/ 前缀）
+createdAt: number     # 提交时间
+```
+
+### feedback_limits（每日反馈限流计数）
+```
+_id: "{openid}_{yyyyMMdd}"
+openid: string
+date: string
+count: number         # 当日已提交条数，上限 5（写入成功后才计数，失败退还）
+```
+
 ### gen_limits（生成配额计数）
 ```
 _id: "{openid}_{yyyyMMdd}"
@@ -116,6 +136,8 @@ count: number         # 当日生成次数，默认上限 3（GEN_DAILY_LIMIT）
 | `requestFlowerGenerate` | `{ name, score, baikeDesc? }` | 未收录花生成请求：同名去重 + 配额扣减 + 建任务 |
 | `getFlowerGenerateTask` | `{ taskId }` | 生成任务状态查询（前端轮询，校验归属） |
 | `generateFlowerWorker` | 无 | 定时触发器（每 2 分钟）处理 1 个生成任务：DeepSeek 科普 + Seedream 插画 + 安全检测 + 入库 |
+| `submitFeedback` | `{ type, content, photoFileIDs? }` | 意见反馈提交：类型/内容/截图数校验 → 每日 5 条限流（事务，失败退还）→ 截图内容安全 → 入库 |
+| `getMyFeedback` | `{ page? }` | 当前用户历史反馈（createdAt 倒序，每页 10 条分页） |
 
 ## 四、索引建议
 
@@ -130,6 +152,8 @@ count: number         # 当日生成次数，默认上限 3（GEN_DAILY_LIMIT）
 |---|---|---|
 | `rate_limits` | 保留 30 天；**注销不删除**（防恶意注销刷次数，openid 不随注销改变） | `cleanupData` 定时触发器（每周日 03:00，cron `0 0 3 * * 0 *`） |
 | `photo_hashes` | 保留 90 天 | `cleanupData` 按 `createdAt` 清理 |
+| `feedback` | 长期保留 | 注销时 openid 匿名化（记录留档）；无自动清理 |
+| `feedback_limits` | 可随 `cleanupData` 清理（仿 rate_limits 30 天） | 建议后续纳入 cleanupData |
 | `user-photos/` 云存储 | 随卡片生命周期 | 删卡/删照片由 saveCard 清理；识别失败由 recognizeFlower/前端清理；历史孤儿文件需控制台手动或存储生命周期策略兜底 |
 | `bd_token` | 单文档覆盖写 | 每次刷新覆盖，无需清理 |
 

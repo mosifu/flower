@@ -1,0 +1,76 @@
+<!-- 反馈页：提交表单（类型/内容/截图）+ 我的历史反馈列表 -->
+<view class="page feedback">
+  <!-- 提交表单 -->
+  <view class="card form-card">
+    <view class="form-title">告诉我们你的想法</view>
+
+    <!-- 类型选择：三选一单选胶囊 -->
+    <view class="type-row">
+      <view
+        wx:for="{{types}}"
+        wx:key="key"
+        class="type-chip {{type === item.key ? 'type-chip-active' : ''}}"
+        data-type="{{item.key}}"
+        bindtap="onTypeTap"
+      >{{item.icon}} {{item.label}}</view>
+    </view>
+
+    <!-- 内容输入：≤500 字实时计数 -->
+    <textarea
+      class="content-input"
+      value="{{content}}"
+      placeholder="说说你的使用体验、遇到的问题或建议…"
+      maxlength="{{contentMax}}"
+      bindinput="onContentInput"
+    />
+    <view class="content-count muted">{{contentLen}}/{{contentMax}}</view>
+
+    <!-- 截图选择：≤3 张，缩略图 + 删除 -->
+    <view class="photo-row">
+      <view
+        wx:for="{{photoTempPaths}}"
+        wx:key="*this"
+        class="photo-thumb"
+      >
+        <image class="photo-img" src="{{item}}" mode="aspectFill" />
+        <view class="photo-del" data-index="{{index}}" catchtap="removePhoto">✕</view>
+      </view>
+      <view wx:if="{{photoTempPaths.length < 3}}" class="photo-add" bindtap="choosePhotos">
+        <text class="photo-add-icon">＋</text>
+        <text class="muted">截图</text>
+      </view>
+    </view>
+
+    <view class="btn-primary submit-btn {{submitting ? 'btn-disabled' : ''}}" bindtap="submit">提交反馈</view>
+  </view>
+
+  <!-- 我的历史反馈 -->
+  <view class="section-title">我的反馈</view>
+  <view wx:if="{{list.length}}" class="list">
+    <view wx:for="{{list}}" wx:key="_id" class="card fb-item">
+      <view class="fb-head">
+        <text class="fb-type">{{item.typeLabel}}</text>
+        <text class="muted">{{item.timeText}}</text>
+      </view>
+      <view class="fb-content">{{item.content}}</view>
+      <view wx:if="{{item.photos.length}}" class="fb-photos">
+        <image
+          wx:for="{{item.photos}}"
+          wx:for-item="ph"
+          wx:key="*this"
+          class="fb-photo"
+          src="{{ph}}"
+          mode="aspectFill"
+          data-fileid="{{ph}}"
+          bindtap="previewPhoto"
+        />
+      </view>
+    </view>
+    <view wx:if="{{loadingList}}" class="muted list-tip">加载中…</view>
+    <view wx:elif="{{!hasMore && list.length}}" class="muted list-tip">没有更多了</view>
+  </view>
+  <view wx:else class="empty">
+    <text class="empty-icon">💬</text>
+    <view>还没有反馈记录</view>
+  </view>
+</view>

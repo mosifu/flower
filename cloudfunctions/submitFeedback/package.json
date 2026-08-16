@@ -1,0 +1,10 @@
+{
+  "name": "submitFeedback",
+  "version": "1.0.0",
+  "description": "意见反馈提交：类型校验、每日限流、截图安全检测、入库",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

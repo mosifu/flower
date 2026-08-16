@@ -42,6 +42,14 @@ Page({
     }
   },
 
+  goFeedback() {
+    /**
+     * 跳转意见反馈页
+     * @returns {void}
+     */
+    wx.navigateTo({ url: '/pages/feedback/feedback' });
+  },
+
   openPrivacy() {
     /**
      * 打开隐私政策弹窗

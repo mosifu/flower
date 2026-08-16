@@ -36,6 +36,11 @@
     <view class="about-line muted">🔓 本项目以 Apache-2.0 开源，识别链路复用并致谢 caozha.com 开源项目（详见 NOTICE）</view>
   </view>
 
+  <view class="section-title">支持</view>
+  <view class="card about-card">
+    <view class="about-line" bindtap="goFeedback">💬 意见反馈</view>
+  </view>
+
   <view class="section-title">账号</view>
   <view class="card about-card">
     <view class="about-line danger-line" bindtap="logoutAccount">🗑 注销账号（删除全部数据）</view>
@@ -78,7 +83,10 @@
           4. 百度 AI 仅接收单张待识别图片用于返回识别结果，不用于其他用途。
         </view>
         <view class="privacy-p">
-          5. 如需删除全部个人数据，可在小程序内删除对应花卡或注销账号；注销后仅保留识别次数计数（用于防止恶意刷次数），其余数据全部删除。
+          5. 如需删除全部个人数据，可在小程序内删除对应花卡或注销账号；注销后仅保留识别次数计数（用于防止恶意刷次数）与意见反馈记录（匿名化保留，用于改进产品），其余数据全部删除。
+        </view>
+        <view class="privacy-p">
+          6. 意见反馈的内容与截图仅用于产品改进，仅开发者可见，不会对外公开；注销后你的反馈记录将匿名化保存。
         </view>
       </scroll-view>
       <view class="btn-primary modal-btn" bindtap="closePrivacy">我知道了</view>

@@ -1,0 +1,160 @@
+/* ===== 反馈页样式 ===== */
+.form-card {
+  padding: 28rpx 24rpx;
+}
+
+.form-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+}
+
+/* 类型选择：胶囊单选 */
+.type-row {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.type-chip {
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  background: #fffdf7;
+  border: 2rpx solid #e4dcc8;
+  color: #8a8374;
+  font-size: 26rpx;
+}
+
+.type-chip-active {
+  background: #3e7d5c;
+  border-color: #3e7d5c;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* 内容输入 */
+.content-input {
+  width: 100%;
+  height: 220rpx;
+  box-sizing: border-box;
+  background: #f7f4ec;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.content-count {
+  text-align: right;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+}
+
+/* 截图选择 */
+.photo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.photo-thumb {
+  position: relative;
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.photo-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  background: #f5f1e4;
+}
+
+.photo-del {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.photo-add {
+  width: 160rpx;
+  height: 160rpx;
+  border: 2rpx dashed #d5cbb0;
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.photo-add-icon {
+  font-size: 56rpx;
+  color: #cbbfa0;
+  line-height: 1;
+}
+
+.submit-btn {
+  margin-top: 28rpx;
+}
+
+/* 历史反馈列表 */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.fb-item {
+  padding: 24rpx;
+}
+
+.fb-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.fb-type {
+  font-size: 24rpx;
+  color: #3e7d5c;
+  font-weight: 600;
+  background: #eaf5ea;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+.fb-content {
+  font-size: 28rpx;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+  word-break: break-all;
+}
+
+.fb-photos {
+  display: flex;
+  gap: 12rpx;
+}
+
+.fb-photo {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 10rpx;
+  background: #f5f1e4;
+}
+
+.list-tip {
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 24rpx;
+}
