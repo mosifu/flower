@@ -10,7 +10,8 @@ Page({
     todayRemaining: 0,
     recentCards: [],
     timeline: [], // 识花时间线：按小时分组的节点数组（含 hourLabel / records[minuteLabel]）
-    timelineIndex: 0 // swiper 当前节点下标（与左侧时间轴高亮联动）
+    timelineIndex: 0, // swiper 当前节点下标（与左侧时间轴高亮联动）
+    timelineScrollTops: [] // 各节点 scroll-view 滚动位置（切换节点时用于定位：上一节点滚到底、下一节点滚到顶）
   },
 
   onShow() {
@@ -42,6 +43,8 @@ Page({
           Object.assign({}, r, { minuteLabel: util.formatMinuteLabel(r.time) })
         )
       }));
+      // 滚动位置数组与节点数同步（默认全部滚到顶部）
+      const timelineScrollTops = (ach.timeline || []).map(() => 0);
       this.setData({
         loading: false,
         stats: ach.stats,
@@ -49,6 +52,7 @@ Page({
         todayRemaining: ach.todayRemaining,
         recentCards: ach.recentCards || [],
         timeline,
+        timelineScrollTops,
         timelineIndex: 0 // 新数据回到最新节点
       });
     } catch (e) {
@@ -112,7 +116,7 @@ Page({
 
   onTimelineChange(e) {
     /**
-     * swiper 纵向滑动切换时间节点：同步左侧时间轴高亮
+     * swiper current 变化（点击时间轴 / 滚动边界切换触发）：同步左侧高亮，并重置当前节点滚动位置
      * @param {Object} e - 事件对象，e.detail.current 为当前节点下标
      * @returns {void}
      */
@@ -121,11 +125,76 @@ Page({
 
   onTimelineTap(e) {
     /**
-     * 点击左侧时间轴节点：跳转 swiper 到对应节点
+     * 点击左侧时间轴节点：跳转 swiper 到对应节点，节点内滚到顶部
      * @param {Object} e - 事件对象，dataset.index 为节点下标
      * @returns {void}
      */
-    this.setData({ timelineIndex: Number(e.currentTarget.dataset.index) });
+    const idx = Number(e.currentTarget.dataset.index);
+    const tops = this.data.timelineScrollTops.slice();
+    tops[idx] = 0; // 点击新节点：从顶部开始看
+    this.lockTimelineSwitch(0); // 点击不属方向切换，dir=0 仅加锁防边界误触发
+    this.setData({ timelineScrollTops: tops, timelineIndex: idx });
+  },
+
+  onTimelineScrollToUpper(e) {
+    /**
+     * 节点内滚动到顶部：切到上一时间节点（新节点从顶部开始）
+     * @param {Object} e - 事件对象，dataset.index 为当前节点下标
+     * @returns {void}
+     */
+    if (!this.canTimelineSwitch(1)) return; // 防抖 + 方向锁
+    const idx = Number(e.currentTarget.dataset.index);
+    if (idx <= 0) return; // 已是第一个节点，不切换
+    const tops = this.data.timelineScrollTops.slice();
+    // 上一节点从顶部开始；不再设 99999 反向滚到底（避免 scroll-top 设置引发边界事件自激振荡）
+    tops[idx - 1] = 0;
+    tops[idx] = 0;
+    this.lockTimelineSwitch(1);
+    this.setData({ timelineScrollTops: tops, timelineIndex: idx - 1 });
+  },
+
+  onTimelineScrollToLower(e) {
+    /**
+     * 节点内滚动到底部：切到下一时间节点（新节点从顶部开始）
+     * @param {Object} e - 事件对象，dataset.index 为当前节点下标
+     * @returns {void}
+     */
+    if (!this.canTimelineSwitch(-1)) return; // 防抖 + 方向锁
+    const idx = Number(e.currentTarget.dataset.index);
+    if (idx >= this.data.timeline.length - 1) return; // 已是最后一个节点
+    const tops = this.data.timelineScrollTops.slice();
+    tops[idx + 1] = 0; // 下一节点从顶部开始
+    tops[idx] = 0;
+    this.lockTimelineSwitch(-1);
+    this.setData({ timelineScrollTops: tops, timelineIndex: idx + 1 });
+  },
+
+  canTimelineSwitch(dir) {
+    /**
+     * 判断是否允许切换：切换锁未激活，且同一方向 800ms 内未连续触发（防自激振荡）
+     * @param {number} dir - 切换方向：1 上（到顶切上一个） / -1 下（到底切下一个）
+     * @returns {boolean}
+     */
+    if (this._timelineSwitching) return false;
+    const now = Date.now();
+    // 同方向短时间内连续触发视为振荡，忽略
+    if (this._timelineLastDir === dir && now - (this._timelineLastDirAt || 0) < 800) {
+      return false;
+    }
+    return true;
+  },
+
+  lockTimelineSwitch(dir) {
+    /**
+     * 锁定切换：设置切换锁与方向记忆，800ms 后解锁（覆盖 swiper 动画 + scroll-top 设置 + 边界事件全周期）
+     * @param {number} dir - 本次切换方向
+     * @returns {void}
+     */
+    this._timelineSwitching = true;
+    this._timelineLastDir = dir;
+    this._timelineLastDirAt = Date.now();
+    clearTimeout(this._timelineSwitchTimer);
+    this._timelineSwitchTimer = setTimeout(() => { this._timelineSwitching = false; }, 800);
   },
 
   onTimelinePhotoTap(e) {
@@ -137,6 +206,17 @@ Page({
     const fileID = e.currentTarget.dataset.fileid;
     if (!fileID) return;
     wx.previewImage({ urls: [fileID], current: fileID });
+  },
+
+  onTimelineFlowerTap(e) {
+    /**
+     * 点击时间线节点内照片的花名：跳转花卡详情页
+     * @param {Object} e - 事件对象，dataset.speciesid 为花种 id
+     * @returns {void}
+     */
+    const speciesId = e.currentTarget.dataset.speciesid;
+    if (!speciesId) return;
+    wx.navigateTo({ url: `/pages/detail/detail?speciesId=${speciesId}` });
   },
 
   onShareAppMessage() {

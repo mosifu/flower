@@ -153,17 +153,35 @@
   flex-direction: column;
 }
 
+/* 时间节点标题：居中展示 + 两侧渐变分割线（清晰划分时间节点） */
 .timeline-slide-head {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #3e7d5c;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
   padding: 6rpx 0 14rpx;
 }
 
-/* 节点内记录：普通布局（上下滑动由 swiper 接管，不再滚动）；随 slide 高度自然展示 */
+.timeline-head-line {
+  flex: 1;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, #d5cbb0);
+}
+
+.timeline-head-line:last-child {
+  background: linear-gradient(90deg, #d5cbb0, transparent);
+}
+
+.timeline-head-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #3e7d5c;
+  flex-shrink: 0;
+}
+
+/* 节点内记录：scroll-view 纵向滚动展示全部识花；flex 收缩约束高度，避免撑爆 swiper-item */
 .timeline-records {
   flex: 1;
-  overflow: hidden;
+  height: 0; /* flex 收缩：父容器为 flex column 时，height:0 + flex:1 使 scroll-view 高度 = 剩余空间 */
 }
 
 .timeline-record {
@@ -192,6 +210,11 @@
 .timeline-flower-name {
   font-size: 28rpx;
   font-weight: 600;
+  color: #3e7d5c;
+  /* 可点击跳转详情 */
+  text-decoration: underline;
+  text-decoration-color: rgba(62, 125, 92, 0.4);
+  text-underline-offset: 4rpx;
 }
 
 .timeline-record-body {

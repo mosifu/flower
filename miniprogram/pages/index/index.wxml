@@ -48,16 +48,30 @@
       bindchange="onTimelineChange"
       circular="{{false}}"
       vertical
+      disable-touch
     >
       <swiper-item wx:for="{{timeline}}" wx:key="hourTime">
         <view class="timeline-slide">
-          <view class="timeline-slide-head">{{item.hourLabel}}</view>
-          <!-- 节点内记录：上下滑动由 swiper 接管，故用普通 view 布局（不再内嵌 scroll-y，避免手势冲突） -->
-          <view class="timeline-records">
+          <!-- 时间节点标题：居中展示 + 两侧分割线，清晰划分时间节点 -->
+          <view class="timeline-slide-head">
+            <view class="timeline-head-line"></view>
+            <text class="timeline-head-label">{{item.hourLabel}}</text>
+            <view class="timeline-head-line"></view>
+          </view>
+          <!-- 节点内记录：scroll-view 纵向滚动展示全部识花；
+               滚到顶部（scrolltoupper）切上一节点、滚到底部（scrolltolower）切下一节点，实现连续浏览 -->
+          <scroll-view
+            class="timeline-records"
+            scroll-y
+            scroll-top="{{timelineScrollTops[index] || 0}}"
+            data-index="{{index}}"
+            bindscrolltoupper="onTimelineScrollToUpper"
+            bindscrolltolower="onTimelineScrollToLower"
+          >
             <view wx:for="{{item.records}}" wx:for-item="rec" wx:key="time" class="timeline-record">
               <view class="timeline-record-head">
                 <text class="timeline-minute">{{rec.minuteLabel}}</text>
-                <text class="timeline-flower-name">{{rec.species.cnName}}</text>
+                <text class="timeline-flower-name" data-speciesid="{{rec.species._id}}" bindtap="onTimelineFlowerTap">{{rec.species.cnName}}</text>
                 <text class="muted">第 {{rec.meetIndex}} 次遇见</text>
               </view>
               <view class="timeline-record-body">
@@ -74,7 +88,7 @@
                 </view>
               </view>
             </view>
-          </view>
+          </scroll-view>
         </view>
       </swiper-item>
     </swiper>
