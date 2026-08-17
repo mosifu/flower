@@ -27,6 +27,19 @@
     </view>
   </view>
 
+  <!-- 识别任务模块：进行中任务摘要，点击进入任务列表页 -->
+  <view class="card task-entry-card" bindtap="goTaskList">
+    <view class="task-entry-head">
+      <text class="task-entry-title">📋 识别任务</text>
+      <text wx:if="{{taskRunning}}" class="task-entry-running">进行中</text>
+    </view>
+    <view class="task-entry-body">
+      <text wx:if="{{taskRunning}}" class="task-entry-text">正在识别：{{taskBatchName}}</text>
+      <text wx:else class="task-entry-text muted">暂无进行中的识别任务</text>
+      <text class="muted task-entry-arrow">→</text>
+    </view>
+  </view>
+
   <!-- 识花时间线：左时间轴（按小时分组）+ 右节点内容（swiper 左右滑动），照片可预览 -->
   <view class="section-title">识花时间线</view>
   <view wx:if="{{timeline.length}}" class="card timeline-card">

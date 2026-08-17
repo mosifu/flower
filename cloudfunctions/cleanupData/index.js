@@ -3,8 +3,9 @@
  * 职责：定时清理过期数据：
  *   - rate_limits 限流计数历史（保留 30 天）
  *   - photo_hashes 图片指纹（MD5 永久去重记录，保留 90 天）
+ *   - batch_tasks 识别任务（终态记录保留 7 天，进行中不清理）
  * 入参：无
- * 返回：{ ok, removedRateLimits, removedHashes }
+ * 返回：{ ok, removedRateLimits, removedHashes, removedTasks }
  * 触发：config.json 配置定时触发器，每周日 03:00 执行
  * 说明：
  * - rate_limits 文档按 openid+日期 生成，永久累积且无业务价值，保留 30 天
@@ -23,6 +24,8 @@ const _ = db.command;
 const RETENTION_DAYS = 30;
 // 图片指纹保留天数：去重窗口 90 天，兼顾防重复与集合体积
 const HASH_RETENTION_DAYS = 90;
+// 识别任务保留天数：终态任务 7 天后清理（进行中任务不清理，避免误删后台处理）
+const TASK_RETENTION_DAYS = 7;
 
 function dateStr(ts) {
   // 时间戳转 yyyyMMdd（与 rate_limits.date 字段格式一致）
@@ -63,7 +66,24 @@ exports.main = async () => {
       if (n < 1000) break;
     }
 
-    return { ok: true, removedRateLimits, removedHashes };
+    // 3. 清理 7 天前的识别任务（仅终态：done/partial/failed；进行中的保留）
+    const taskBoundary = Date.now() - TASK_RETENTION_DAYS * 86400000;
+    let removedTasks = 0;
+    const taskCol = db.collection('batch_tasks');
+    for (let i = 0; i < 100; i++) {
+      const res = await taskCol
+        .where({
+          createdAt: _.lt(taskBoundary),
+          status: _.in(['done', 'partial', 'failed'])
+        })
+        .limit(1000)
+        .remove();
+      const n = (res.stats && res.stats.removed) || 0;
+      removedTasks += n;
+      if (n < 1000) break;
+    }
+
+    return { ok: true, removedRateLimits, removedHashes, removedTasks };
   } catch (err) {
     console.error('cleanupData error:', err);
     return {

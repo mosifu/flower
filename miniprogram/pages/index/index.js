@@ -11,7 +11,9 @@ Page({
     recentCards: [],
     timeline: [], // 识花时间线：按小时分组的节点数组（含 hourLabel / records[minuteLabel]）
     timelineIndex: 0, // swiper 当前节点下标（与左侧时间轴高亮联动）
-    timelineScrollTops: [] // 各节点 scroll-view 滚动位置（切换节点时用于定位：上一节点滚到底、下一节点滚到顶）
+    timelineScrollTops: [], // 各节点 scroll-view 滚动位置（切换节点时用于定位：上一节点滚到底、下一节点滚到顶）
+    taskRunning: false,  // 是否有进行中的识别任务
+    taskBatchName: ''    // 最近进行中任务的批次名
   },
 
   onShow() {
@@ -45,6 +47,16 @@ Page({
       }));
       // 滚动位置数组与节点数同步（默认全部滚到顶部）
       const timelineScrollTops = (ach.timeline || []).map(() => 0);
+      // 识别任务状态（并行查询，失败静默不打断主数据）
+      let taskRunning = false;
+      let taskBatchName = '';
+      try {
+        const taskRes = await util.callFunction('getBatchTask');
+        const running = (taskRes.list || []).find(
+          (t) => ['identified', 'pending', 'processing'].includes(t.status)
+        );
+        if (running) { taskRunning = true; taskBatchName = running.batchName || ''; }
+      } catch (e) { /* 任务模块失败静默 */ }
       this.setData({
         loading: false,
         stats: ach.stats,
@@ -53,7 +65,9 @@ Page({
         recentCards: ach.recentCards || [],
         timeline,
         timelineScrollTops,
-        timelineIndex: 0 // 新数据回到最新节点
+        timelineIndex: 0, // 新数据回到最新节点
+        taskRunning,
+        taskBatchName
       });
     } catch (e) {
       this.setData({ loading: false });
@@ -112,6 +126,14 @@ Page({
      * @returns {void}
      */
     wx.switchTab({ url: '/pages/achievements/achievements' });
+  },
+
+  goTaskList() {
+    /**
+     * 跳转识别任务列表页
+     * @returns {void}
+     */
+    wx.navigateTo({ url: '/pages/task-list/task-list' });
   },
 
   onTimelineChange(e) {

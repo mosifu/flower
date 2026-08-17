@@ -1,0 +1,36 @@
+<!-- 识别任务列表页：正在识别 + 识别历史 -->
+<view class="page task-list">
+  <view wx:if="{{loading}}" class="empty"><text class="empty-icon">⏳</text><view>加载中…</view></view>
+
+  <block wx:else>
+    <view class="section-title">正在识别</view>
+    <view wx:if="{{running.length}}" class="task-group">
+      <view wx:for="{{running}}" wx:key="taskId" class="card task-card" data-id="{{item.taskId}}" bindtap="openTask">
+        <view class="task-card-head">
+          <text class="task-batch">🕐 {{item.batchName}}</text>
+          <text class="task-status task-status-running">{{item.statusText}}</text>
+        </view>
+        <view class="muted">进度 {{item.progressText}} · {{item.timeText}}</view>
+      </view>
+    </view>
+    <view wx:else class="empty">
+      <text class="empty-icon">🌱</text>
+      <view>暂无识别任务</view>
+    </view>
+
+    <view class="section-title">识别历史</view>
+    <view wx:if="{{history.length}}" class="task-group">
+      <view wx:for="{{history}}" wx:key="taskId" class="card task-card" data-id="{{item.taskId}}" bindtap="openTask">
+        <view class="task-card-head">
+          <text class="task-batch">🕐 {{item.batchName}}</text>
+          <text class="task-status">{{item.statusText}}</text>
+        </view>
+        <view class="muted">结果 {{item.progressText}} · {{item.timeText}}</view>
+      </view>
+    </view>
+    <view wx:else class="empty">
+      <text class="empty-icon">🗂</text>
+      <view>暂无识别历史</view>
+    </view>
+  </block>
+</view>

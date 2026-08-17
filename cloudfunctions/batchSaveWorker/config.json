@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "openapi": [
+      "security.imgSecCheck"
+    ]
+  },
+  "timeout": 60,
+  "triggers": [
+    {
+      "name": "batch-save-tick",
+      "type": "timer",
+      "config": "0 */1 * * * * *"
+    }
+  ]
+}

@@ -80,6 +80,45 @@
   margin-top: 14rpx;
 }
 
+/* ===== 识别任务模块 ===== */
+.task-entry-card {
+  margin-top: 24rpx;
+  cursor: pointer;
+}
+
+.task-entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.task-entry-title {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.task-entry-running {
+  font-size: 22rpx;
+  color: #3e7d5c;
+  background: #eaf5ea;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+.task-entry-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-entry-text {
+  font-size: 26rpx;
+}
+
+.task-entry-arrow {
+  font-size: 24rpx;
+}
 /* ===== 识花时间线（左时间轴 + 右 swiper）===== */
 .timeline-card {
   display: flex;

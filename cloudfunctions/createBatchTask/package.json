@@ -1,0 +1,10 @@
+{
+  "name": "createBatchTask",
+  "version": "1.0.0",
+  "description": "创建批量识别任务（确认入库转云端后台执行）",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

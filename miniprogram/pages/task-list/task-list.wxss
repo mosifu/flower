@@ -1,0 +1,35 @@
+/* ===== 识别任务列表页 ===== */
+.task-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.task-card {
+  padding: 24rpx;
+}
+
+.task-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.task-batch {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.task-status {
+  font-size: 22rpx;
+  color: #8a8374;
+  background: #f0ece0;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+.task-status-running {
+  color: #3e7d5c;
+  background: #eaf5ea;
+}

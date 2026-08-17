@@ -1,0 +1,10 @@
+{
+  "name": "batchSaveWorker",
+  "version": "1.0.0",
+  "description": "批量识别任务后台处理：已收录花入库、未收录花生成后入库",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

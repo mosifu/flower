@@ -6,7 +6,9 @@
     "pages/detail/detail",
     "pages/achievements/achievements",
     "pages/profile/profile",
-    "pages/feedback/feedback"
+    "pages/feedback/feedback",
+    "pages/task-list/task-list",
+    "pages/task-detail/task-detail"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f7f4ec",
