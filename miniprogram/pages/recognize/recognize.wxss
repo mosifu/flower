@@ -381,6 +381,23 @@
   opacity: 0.5;
 }
 
+/* 未收录花生成入口：纯提示样式（功能统一为确认入库后台生成） */
+.gen-btn-tip {
+  opacity: 0.7;
+}
+
+/* 非植物/未识别出花朵卡片 */
+.nonplant-card {
+  text-align: center;
+  padding: 40rpx 28rpx;
+}
+
+/* 提示区内的操作按钮组（删除/重新上传） */
+.batch-tip-ops {
+  margin-top: 10rpx;
+  gap: 12rpx;
+}
+
 .batch-confirm-btn {
   margin-top: 8rpx;
 }

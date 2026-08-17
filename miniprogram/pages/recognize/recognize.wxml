@@ -79,7 +79,16 @@
           <!-- 右：提示区——默认「点击花名查看详情」；选中未收录花显示未收录提示；入库中/成功显示进度文案；重复照片显示删除 -->
           <view class="batch-item-tip">
             <!-- 重复照片：删除按钮 + 提示（未识别的照片不会入库） -->
-            <view wx:if="{{item.status === 'fail' && item.duplicate && item.saveState === 'idle'}}" class="batch-tip-duplicate">
+            <!-- 非植物/未识别出花朵：删除 + 重新上传 + 提示（不入库不生成） -->
+            <view wx:if="{{item.status === 'fail' && item.nonPlant && item.saveState === 'idle'}}" class="batch-tip-duplicate">
+              <view class="batch-tip-dup-note">暂未识别出花朵</view>
+              <view class="batch-item-ops batch-tip-ops">
+                <view class="btn-ghost batch-op-btn batch-del-btn" data-index="{{index}}" bindtap="onBatchRemoveDuplicate">删除</view>
+                <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchReupload">重新上传</view>
+              </view>
+            </view>
+            <!-- 重复照片：删除 + 重新上传（未识别的照片不会入库） -->
+            <view wx:elif="{{item.status === 'fail' && item.duplicate && item.saveState === 'idle'}}" class="batch-tip-duplicate">
               <view class="btn-ghost batch-op-btn batch-del-btn" data-index="{{index}}" bindtap="onBatchRemoveDuplicate">删除</view>
               <view class="batch-tip-dup-note">未识别的照片不会入库</view>
             </view>
@@ -90,18 +99,22 @@
               <view wx:elif="{{item.saveState === 'done'}}" class="batch-tip-done">{{item.candidates[item.selectedIndex].species.cnName}} 入库成功</view>
               <view wx:elif="{{item.saveState === 'fail'}}" class="batch-tip-fail">入库失败</view>
               <view wx:elif="{{item.candidates[item.selectedIndex].species}}" class="batch-tip-default">点击花名查看花朵详情</view>
+              <!-- 未收录花生成入口：保留样式纯提示（功能统一为确认入库时后台生成） -->
               <view wx:else class="batch-tip-uncollected">
-                <view wx:if="{{item.genState === 'generating'}}" class="gen-btn gen-btn-pending">✨ 生成中…约需 1 分钟</view>
-                <view wx:elif="{{item.genState === 'no_quota'}}" class="gen-btn gen-btn-disabled">今日生成次数已用完</view>
-                <view wx:else class="gen-btn" data-index="{{index}}" bindtap="onBatchGenerateTap">✨ 收录并生成花卡（AI 绘制插画与科普）</view>
+                <view class="gen-btn gen-btn-tip">✨ 未收录，确认入库后自动生成</view>
               </view>
             </view>
           </view>
         </view>
 
-        <!-- 失败张操作：重复照片显示「继续识别」（消耗次数）；真失败显示「换一张重试 + 保存到相册」 -->
+        <!-- 失败张操作：重复照片「继续识别 + 重新上传」；非植物「重新上传」；真失败「换一张重试 + 保存到相册」 -->
         <view wx:if="{{item.status === 'fail' && item.duplicate}}" class="batch-item-ops">
           <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchRetryDuplicate">继续识别（消耗 1 次）</view>
+          <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchReupload">重新上传</view>
+        </view>
+        <view wx:elif="{{item.status === 'fail' && item.nonPlant}}" class="batch-item-ops">
+          <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchReupload">重新上传</view>
+          <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchSavePhoto">保存到相册</view>
         </view>
         <view wx:elif="{{item.status === 'fail'}}" class="batch-item-ops">
           <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="retryBatchItem">换一张重试</view>
@@ -183,15 +196,21 @@
             {{item.baike.description}}
             <view class="candidate-desc-source muted">来源：百度百科</view>
           </view>
-          <!-- 未收录花生成入口：置信度 >40% 且未在生成中时显示 -->
-          <view wx:if="{{!item.species && item.score > 0.4}}" class="gen-row">
-            <view wx:if="{{genIndex === index}}" class="gen-btn gen-btn-pending">✨ 生成中…约需 1 分钟</view>
-            <view wx:else class="gen-btn" data-index="{{index}}" bindtap="onGenerateTap">✨ 收录并生成花卡（AI 绘制插画与科普）</view>
+          <!-- 未收录花生成入口：保留样式纯提示（功能统一为确认入库时后台生成） -->
+          <view wx:if="{{!item.species && item.score > 0.4 && !nonPlant}}" class="gen-row">
+            <view class="gen-btn gen-btn-tip">✨ 未收录，确认入库后自动生成</view>
           </view>
         </view>
       </view>
 
-      <view class="btn-primary confirm-btn" bindtap="confirmSave">确认入库，生成花卡</view>
+      <!-- 非植物/未识别出花朵：不提供确认入库，提示重新上传 -->
+      <view wx:if="{{nonPlant}}" class="card nonplant-card">
+        <view class="empty-inline">🤔 暂未识别出花朵</view>
+        <view class="muted">请重新上传一张花的清晰照片</view>
+        <view class="btn-ghost" bindtap="saveToAlbum">保存照片到系统相册</view>
+        <view class="btn-primary retake-btn" bindtap="chooseNew">重新上传</view>
+      </view>
+      <view wx:else class="btn-primary confirm-btn" bindtap="confirmSave">确认入库，生成花卡</view>
     </view>
 
     <view wx:else class="card">

@@ -1,0 +1,10 @@
+{
+  "name": "updateBatchTask",
+  "version": "1.0.0",
+  "description": "更新识别任务（identified→pending 锁定 / 实时同步清单 / 单图已收录标记 done）",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

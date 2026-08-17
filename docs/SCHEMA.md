@@ -13,6 +13,7 @@
 | `gen_limits` | 每日生成配额计数 | 仅管理端可读写 |
 | `feedback` | 用户意见反馈记录 | 仅管理端可读写 |
 | `feedback_limits` | 每日反馈条数限流（上限 5） | 仅管理端可读写 |
+| `batch_tasks` | 批量识别任务（确认入库转云端后台执行） | 仅管理端可读写 |
 
 > 注：前端全部通过云函数读写数据，集合统一设「仅管理端可读写」最安全。
 
@@ -114,6 +115,26 @@ date: string
 count: number         # 当日已提交条数，上限 5（写入成功后才计数，失败退还）
 ```
 
+### batch_tasks（批量识别任务）
+```
+_id: string            # 自动生成
+openid: string        # 任务归属用户
+batchName: string     # 批次名 YYYY-MM-DD_HH-mm-ss
+status: string        # pending / processing / done / partial / failed
+items: [{
+  fileID: string,     # 该张照片云存储（后台 saveCard 用）
+  itemStatus: string, # identified / pending / generating / done / fail / nonPlant / duplicate
+  candidates: [],     # identified 阶段存全部候选（用户可单选）；确认入库后清空
+  selectedIndex: number,# identified 阶段用户选中候选下标
+  speciesId: string,  # 已收录花种 id；未收录为空（确认入库后回填）
+  name: string,       # 未收录花百度名
+  score: number,      # 未收录置信度
+  baikeDesc: string,  # 未收录百科描述
+  meetCount / newCard / failMsg: 入库后回填
+}]
+createdAt / updatedAt: number
+```
+
 ### gen_limits（生成配额计数）
 ```
 _id: "{openid}_{yyyyMMdd}"
@@ -138,6 +159,10 @@ count: number         # 当日生成次数，默认上限 3（GEN_DAILY_LIMIT）
 | `generateFlowerWorker` | 无 | 定时触发器（每 2 分钟）处理 1 个生成任务：DeepSeek 科普 + Seedream 插画 + 安全检测 + 入库 |
 | `submitFeedback` | `{ type, content, photoFileIDs? }` | 意见反馈提交：类型/内容/截图数校验 → 每日 5 条限流（事务，失败退还）→ 截图内容安全 → 入库 |
 | `getMyFeedback` | `{ page? }` | 当前用户历史反馈（createdAt 倒序，每页 10 条分页） |
+| `createBatchTask` | `{ items[] }` | 创建批量识别任务：并发上限 3 条校验 + 批次名 + 入库 batch_tasks |
+| `getBatchTask` | `{ taskId? }` | 查询识别任务：不传返回全部（倒序）、传 taskId 返回完整 items |
+| `batchSaveWorker` | 无 | 定时触发器（每 1 分钟）处理批量任务：已收录花 saveCard 入库、未收录花建生成任务/查状态后入库 |
+| `updateBatchTask` | `{ taskId, action, items? }` | 更新识别任务：lock（identified→pending 锁定选中）/ sync（identified 实时同步清单）/ done（单图已收录直接入库标记完成） |
 
 ## 四、索引建议
 
@@ -154,6 +179,7 @@ count: number         # 当日生成次数，默认上限 3（GEN_DAILY_LIMIT）
 | `photo_hashes` | 保留 90 天 | `cleanupData` 按 `createdAt` 清理 |
 | `feedback` | 长期保留 | 注销时 openid 匿名化（记录留档）；无自动清理 |
 | `feedback_limits` | 可随 `cleanupData` 清理（仿 rate_limits 30 天） | 建议后续纳入 cleanupData |
+| `batch_tasks` | 终态任务保留 7 天 | `cleanupData` 按 createdAt 清理（进行中不清理） |
 | `user-photos/` 云存储 | 随卡片生命周期 | 删卡/删照片由 saveCard 清理；识别失败由 recognizeFlower/前端清理；历史孤儿文件需控制台手动或存储生命周期策略兜底 |
 | `bd_token` | 单文档覆盖写 | 每次刷新覆盖，无需清理 |
 

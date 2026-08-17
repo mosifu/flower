@@ -15,6 +15,8 @@ Page({
     limit: 20,
     resultMsg: '',
     photoFileID: '',
+    nonPlant: false, // 单图识别非植物/未识别出花朵标记
+    currentTaskId: '', // 当前识别结果/清单对应的识别任务 id（识别有记录，进入即创建）
     successCard: null,
     successCards: [],      // 批量入库成功后展示的多花数组（success 页 swiper 切换）
     successIndex: 0,      // success 页当前展示的花下标
@@ -151,6 +153,18 @@ Page({
      * @param {string[]} tempPaths - 多张本地图片路径数组
      * @returns {Promise<void>}
      */
+    // 并发拦截：进行中识别任务达到上限（3 条）时拒绝新批量识别（识别任务后台化方案）
+    try {
+      const taskRes = await util.callFunction('getBatchTask');
+      const running = (taskRes.list || []).filter(
+        (t) => t.status === 'pending' || t.status === 'processing'
+      );
+      if (running.length >= 3) {
+        util.showToast('识别任务已达上限（3 条），请稍后再试');
+        this.setData({ phase: 'idle' });
+        return;
+      }
+    } catch (e) { /* 查询失败不拦截 */ }
     // 批量识别方案：云函数 20s 超时限制，单次调用只能处理 1 张，故逐张串行调用
     this.stopGenPolling();
     // 初始化批量清单：全部置 fail 占位，识别成功逐项更新为 ok
@@ -216,11 +230,51 @@ Page({
         this.setData({ batchList: list });
       }
     }
-    // 全部处理完：进入清单确认
+    // 全部处理完：进入清单确认（识别有记录——先创建 identified 任务，用户随时退出不丢结果）
     this.setData({
       phase: 'batch_result',
       remaining: (this.data.remaining >= 0) ? this.data.remaining : 0
     });
+    this.createIdentifiedTask();
+  },
+
+  async createIdentifiedTask() {
+    /**
+     * 创建/同步 identified 任务：识别完成进入清单即创建（识别有记录）；
+     * 若已存在对应任务则同步更新（清单操作后调用）
+     * @returns {Promise<void>}
+     */
+    // 组装 identified items：该批次全部照片 + 全部候选（非植物/重复/失败如实记录）
+    const items = this.data.batchList.map((it) => {
+      // 各状态 item：identified 记录候选；nonPlant/duplicate/fail 也保留供详情展示
+      return {
+        fileID: it.fileID,
+        itemStatus: it.status === 'ok'
+          ? 'identified'
+          : (it.nonPlant ? 'nonPlant' : (it.duplicate ? 'duplicate' : 'fail')),
+        candidates: (it.candidates || []).map((c) => ({
+          name: c.name,
+          score: c.score,
+          scoreText: c.scoreText,
+          species: c.species || null,
+          baike: c.baike || null
+        })),
+        selectedIndex: it.selectedIndex || 0,
+        failMsg: it.failMsg || ''
+      };
+    });
+    try {
+      if (this.data.currentTaskId) {
+        // 已有任务：实时同步（清单操作后）
+        await util.callFunction('updateBatchTask', { taskId: this.data.currentTaskId, action: 'sync', items });
+      } else {
+        const res = await util.callFunction('createBatchTask', { mode: 'identified', items });
+        this.setData({ currentTaskId: res.taskId });
+      }
+    } catch (e) {
+      // 并发上限等失败：静默（不影响清单使用；确认入库时再处理）
+      console.warn('创建识别任务失败:', e);
+    }
   },
 
   handleBatchResult(i, res, fileID) {
@@ -238,10 +292,14 @@ Page({
         lowConfidence: typeof c.score === 'number' && c.score < 0.6
       })
     );
+    // 非植物/未识别判定：未命中知识库（hit=false）且候选均无 species（如百度返回「非植物」）
+    // → 标记 nonPlant，提示「暂未识别出花朵」，不入库、不显示生成入口
+    const isNonPlant = !res.hit && !candidates.some((c) => c.species);
     const list = this.data.batchList.slice();
     list[i] = Object.assign({}, list[i], {
-      status: 'ok',
-      failMsg: '',
+      status: isNonPlant ? 'fail' : 'ok',
+      failMsg: isNonPlant ? '暂未识别出花朵' : '',
+      nonPlant: isNonPlant,
       fileID,
       candidates,
       selectedIndex: 0,
@@ -277,14 +335,16 @@ Page({
     if (this._batchRetryIndex !== undefined && this._batchRetryIndex >= 0) {
       const idx = this._batchRetryIndex;
       this._batchRetryIndex = -1;
-      const firstHit = candidates.findIndex((c) => c.species);
+      // 非植物判定：未命中且候选均无 species
+      const isNonPlant = !res.hit && !candidates.some((c) => c.species);
       const list = this.data.batchList.slice();
       list[idx] = Object.assign({}, list[idx], {
-        status: 'ok',
-        failMsg: '',
+        status: isNonPlant ? 'fail' : 'ok',
+        failMsg: isNonPlant ? '暂未识别出花朵' : '',
+        nonPlant: isNonPlant,
         fileID,
         candidates,
-        selectedIndex: firstHit >= 0 ? firstHit : 0,
+        selectedIndex: 0,
         hit: !!res.hit,
         remaining: res.remaining,
         limit: res.limit,
@@ -297,10 +357,14 @@ Page({
         remaining: res.remaining,
         limit: res.limit
       });
+      // 重传/重试后同步识别任务（识别有记录）
+      this.createIdentifiedTask();
       return;
     }
     // 默认选中第一个命中知识库的候选，避免用户选到未收录项
     const firstHit = candidates.findIndex((c) => c.species);
+    // 非植物判定：未命中且候选均无 species（如百度返回「非植物」）
+    const isNonPlant = !res.hit && !candidates.some((c) => c.species);
     this.setData({
       phase: 'result',
       photoFileID: fileID,
@@ -309,11 +373,45 @@ Page({
       remaining: res.remaining,
       limit: res.limit,
       selectedIndex: firstHit >= 0 ? firstHit : 0,
-      resultMsg: candidates.length ? '' : '未识别出花朵，请换一张更清晰的照片试试',
+      resultMsg: candidates.length ? (isNonPlant ? '暂未识别出花朵' : '') : '未识别出花朵，请换一张更清晰的照片试试',
+      nonPlant: isNonPlant,
       // 记录本次图片路径与时间，供 30 秒同图去重判断
       lastPath: tempPath,
       lastTime: now
     });
+    // 识别有记录：单图进入结果界面也创建 identified 任务（未收录/非植物都记录，确认入库时更新）
+    this.createSingleIdentifiedTask();
+  },
+
+  async createSingleIdentifiedTask() {
+    /**
+     * 单图识别创建/同步 identified 任务（识别有记录）——1 张照片，含全部候选；
+     * 非植物/未收录如实记录；确认入库时更新为 pending（后台生成）或 done（已收录直接入库）
+     * @returns {Promise<void>}
+     */
+    const items = [{
+      fileID: this.data.photoFileID,
+      itemStatus: this.data.nonPlant ? 'nonPlant' : 'identified',
+      candidates: (this.data.candidates || []).map((c) => ({
+        name: c.name,
+        score: c.score,
+        scoreText: c.scoreText,
+        species: c.species || null,
+        baike: c.baike || null
+      })),
+      selectedIndex: this.data.selectedIndex || 0,
+      failMsg: this.data.nonPlant ? '暂未识别出花朵' : ''
+    }];
+    try {
+      if (this.data.currentTaskId) {
+        await util.callFunction('updateBatchTask', { taskId: this.data.currentTaskId, action: 'sync', items });
+      } else {
+        const res = await util.callFunction('createBatchTask', { mode: 'identified', items });
+        this.setData({ currentTaskId: res.taskId });
+      }
+    } catch (e) {
+      console.warn('创建单图识别任务失败:', e);
+    }
   },
 
   chooseNew() {
@@ -740,34 +838,92 @@ Page({
 
   async confirmSave() {
     /**
-     * 确认入库：saveCard create，返回成功态
+     * 确认入库：已收录花直接 saveCard 入库（任务标记 done，识别有记录）；
+     * 未收录花 → 更新识别任务为 pending（后台生成后入库），提示回首页
      * @returns {Promise<void>}
      */
-    // 用户确认后入库：saveCard create，已收集过则自动转为追加照片
     const c = this.data.candidates[this.data.selectedIndex];
-    if (!c || !c.species) {
+    if (!c) {
       util.showToast('请先选择一个花种');
       return;
     }
-    wx.showLoading({ title: '收录中...', mask: true });
-    try {
-      const res = await util.callFunction('saveCard', {
-        action: 'create',
-        speciesId: c.species._id,
-        photoFileID: this.data.photoFileID
-      });
-      this.setData({
-        phase: 'success',
-        successCard: Object.assign({}, c.species, {
-          meetCount: res.meetCount,
-          newCard: res.newCard
-        })
-      });
-    } catch (e) {
-      util.showToast(e.message || '保存失败');
-    } finally {
-      wx.hideLoading();
+    // 非植物/未识别：不入库，提示
+    if (this.data.nonPlant) {
+      util.showToast('暂未识别出花朵，无法入库');
+      return;
     }
+    // 已收录花：直接入库（体验不变），任务标记 done
+    if (c.species) {
+      wx.showLoading({ title: '收录中...', mask: true });
+      try {
+        const res = await util.callFunction('saveCard', {
+          action: 'create',
+          speciesId: c.species._id,
+          photoFileID: this.data.photoFileID
+        });
+        // 任务标记 done（识别有记录：已收录花直接入库也算一次识别记录）
+        if (this.data.currentTaskId) {
+          const items = [{
+            fileID: this.data.photoFileID,
+            itemStatus: 'done',
+            speciesId: c.species._id,
+            candidates: [],
+            meetCount: res.meetCount,
+            newCard: res.newCard,
+            failMsg: ''
+          }];
+          util.callFunction('updateBatchTask', { taskId: this.data.currentTaskId, action: 'done', items }).catch(() => {});
+        }
+        this.setData({
+          phase: 'success',
+          successCard: Object.assign({}, c.species, {
+            meetCount: res.meetCount,
+            newCard: res.newCard
+          })
+        });
+      } catch (e) {
+        util.showToast(e.message || '保存失败');
+      } finally {
+        wx.hideLoading();
+      }
+      return;
+    }
+    // 未收录花：更新任务为 pending（后台生成），提示回首页
+    const doUpdate = async () => {
+      wx.showLoading({ title: '提交任务', mask: true });
+      try {
+        const items = [{
+          fileID: this.data.photoFileID,
+          speciesId: '',
+          name: c.name,
+          score: c.score,
+          baikeDesc: c.baike && c.baike.description ? c.baike.description : ''
+        }];
+        if (this.data.currentTaskId) {
+          await util.callFunction('updateBatchTask', { taskId: this.data.currentTaskId, action: 'lock', items });
+        } else {
+          await util.callFunction('createBatchTask', { items });
+        }
+        wx.hideLoading();
+        wx.showModal({
+          title: '已提交识别任务',
+          content: '该花还未收录图鉴，正在生成入库中，可回到首页查看进度。',
+          showCancel: false,
+          success: () => wx.switchTab({ url: '/pages/index/index' })
+        });
+      } catch (err) {
+        wx.hideLoading();
+        util.showToast(err.message || '提交任务失败');
+      }
+    };
+    // 未收录花：提示后转后台生成
+    wx.showModal({
+      title: '未收录花确认',
+      content: '该花还未收录图鉴，确认入库将按识别结果生成花卡并入库，约需 1 分钟。是否继续？',
+      confirmText: '确认入库',
+      cancelText: '取消',
+      success: (r) => { if (r.confirm) doUpdate(); }
+    });
   },
 
   onBatchSelectCandidate(e) {
@@ -783,6 +939,8 @@ Page({
     if (!item || !item.candidates || !item.candidates[cidx]) return;
     item.selectedIndex = cidx;
     this.setData({ batchList: list });
+    // 实时同步识别任务（identified 阶段用户可操作，候选选择变更需同步）
+    this.createIdentifiedTask();
   },
 
   onBatchFlowerNameTap(e) {
@@ -809,34 +967,73 @@ Page({
 
   async confirmBatchSave() {
     /**
-     * 批量确认入库：按 batchList 顺序逐张处理（已收录直接入库、未收录先生成后入库）；
-     * 确认后立即锁定所有候选（saving，其他候选不展示），全程展示每张进度（转圈 → ✓）
+     * 批量确认入库：任务存在则更新为 pending（锁定选中项），否则新建；
+     * 跳过 nonPlant/duplicate/fail 张并提示；转后台后回首页
      * @returns {Promise<void>}
      */
-    // 防重复点击：入库/生成进行中时拒绝再次触发
     if (this._batchSaving) {
-      util.showToast('花卡正在生成中，请稍等');
+      util.showToast('识别任务正在提交中，请稍等');
       return;
     }
     const list = this.data.batchList;
-    // 待处理张：status=ok 且未确认且非生成中（保持 batchList 原顺序）
+    // 待入库张：status=ok 且未确认（已收录/未收录）；nonPlant/duplicate/fail 不入库
     const pending = list
       .map((item, i) => ({ item, i }))
-      .filter(({ item }) => {
-        if (item.status !== 'ok') return false;
-        if (item.confirmed) return false;
-        const c = item.candidates && item.candidates[item.selectedIndex];
-        return c && item.saveState === 'idle';
-      });
+      .filter(({ item }) => item.status === 'ok' && !item.confirmed);
+    const skippedCount = list.filter((it) => it.nonPlant || it.duplicate || it.status === 'fail').length;
+    if (!pending.length) {
+      // 全被跳过（如全是非植物/重复/失败）
+      const msg = skippedCount
+        ? `有 ${skippedCount} 张未识别出花朵或重复照片，未入库`
+        : '没有可确认的花';
+      util.showToast(msg);
+      return;
+    }
     const uncollectedCount = pending.filter(({ item }) => {
       const c = item.candidates && item.candidates[item.selectedIndex];
       return c && !c.species;
     }).length;
-    if (!pending.length) {
-      util.showToast('没有可确认的花（失败或生成中除外）');
-      return;
-    }
-    // 存在未收录张：先弹确认，说明将按置信度最高候选生成花卡并入库
+    const doLock = async () => {
+      this._batchSaving = true;
+      wx.showLoading({ title: '提交任务', mask: true });
+      try {
+        // 锁定 items：只存每张选中候选（已收录 speciesId / 未收录 name）
+        const items = pending.map(({ item }) => {
+          const c = item.candidates && item.candidates[item.selectedIndex];
+          return {
+            fileID: item.fileID,
+            speciesId: c && c.species ? c.species._id : '',
+            name: c && !c.species ? c.name : '',
+            score: c && !c.species ? c.score : 0,
+            baikeDesc: c && c.baike && c.baike.description ? c.baike.description : ''
+          };
+        });
+        if (this.data.currentTaskId) {
+          // 已存在 identified 任务：更新为 pending（不新建）
+          await util.callFunction('updateBatchTask', {
+            taskId: this.data.currentTaskId,
+            action: 'lock',
+            items
+          });
+        } else {
+          await util.callFunction('createBatchTask', { items });
+        }
+        wx.hideLoading();
+        const tip = skippedCount
+          ? `正在生成入库中，可回到首页操作。${skippedCount} 张未识别出花朵或重复照片未入库。`
+          : '正在生成入库中，可回到首页进行其他操作。任务进度可在首页「识别任务」查看。';
+        wx.showModal({
+          title: '已提交识别任务',
+          content: tip,
+          showCancel: false,
+          success: () => wx.switchTab({ url: '/pages/index/index' })
+        });
+      } catch (err) {
+        wx.hideLoading();
+        this._batchSaving = false;
+        util.showToast(err.message || '提交任务失败');
+      }
+    };
     if (uncollectedCount) {
       const tip = `有 ${uncollectedCount} 张花还未收录图鉴，确认入库将按识别结果（置信度最高）生成花卡并入库，约需 1 分钟。是否继续？`;
       wx.showModal({
@@ -844,139 +1041,37 @@ Page({
         content: tip,
         confirmText: '确认入库',
         cancelText: '取消',
-        success: (r) => {
-          if (!r.confirm) return;
-          this.processBatchInOrder(pending);
-        }
+        success: (r) => { if (r.confirm) doLock(); }
       });
       return;
     }
-    // 无未收录张：直接按顺序入库
-    this.processBatchInOrder(pending);
-  },
-
-  async processBatchInOrder(pending) {
-    /**
-     * 按 batchList 顺序逐张入库：先锁定所有候选（saving），再逐张处理——
-     * 已收录直接 saveCard；未收录先生成（pollBatchGenTask）挂花种后自动入库；完成后收集 successCards
-     * @param {Array} pending - [{ item, i }] 待处理张（保持原顺序）
-     * @returns {Promise<void>}
-     */
-    this._batchSaving = true;      // 防重复点击标记
-    this._autoSaveAfterGen = true; // 生成完成后自动入库标记
-    // 锁定所有候选：全部置 saving（候选区收缩为勾选花 + 转圈，其他候选不展示、不可再选）
-    const list = this.data.batchList;
-    const next = list.slice();
-    pending.forEach(({ i }) => {
-      next[i] = Object.assign({}, next[i], { saveState: 'saving' });
-    });
-    this.setData({ batchList: next, batchConfirming: true });
-    // 分两阶段，避免未收录花生成（慢/可能失败）阻塞已收录花入库：
-    // 阶段一：按原顺序，已收录花立即入库；未收录花触发生成任务并收集到队列
-    const genQueue = []; // { i, taskId } 未收录生成任务队列
-    for (const { item, i } of pending) {
-      const cur = this.data.batchList[i];
-      const c = cur.candidates && cur.candidates[cur.selectedIndex];
-      if (!c) continue;
-      if (c.species) {
-        // 已收录：直接入库（秒级完成，不等待生成）
-        await this.saveBatchItem(i);
-      } else {
-        // 未收录：触发生成任务（不阻塞后续已收录花），任务加入队列稍后串行轮询
-        const genC = cur.candidates[0]; // 用置信度最高候选生成（与默认选中一致）
-        try {
-          const res = await util.callFunction('requestFlowerGenerate', {
-            name: genC.name,
-            score: genC.score,
-            baikeDesc: genC.baike && genC.baike.description ? genC.baike.description : ''
-          });
-          if (res.alreadyExists && res.speciesId) {
-            // 已存在：直接挂花种并入库
-            await this.attachSpeciesToBatch(i, res.speciesId);
-            await this.saveBatchItem(i);
-            continue;
-          }
-          genQueue.push({ i, taskId: res.taskId });
-        } catch (err) {
-          const cur2 = this.data.batchList.slice();
-          cur2[i] = Object.assign({}, cur2[i], {
-            genState: err.code === 'GEN_LIMITED' ? 'no_quota' : 'failed',
-            failMsg: err.message || '生成失败',
-            saveState: 'fail'
-          });
-          this.setData({ batchList: cur2 });
-        }
-      }
-    }
-    // 阶段二：已收录花全部入库后，串行处理未收录生成队列（每张生成完成自动入库）
-    for (const { i, taskId } of genQueue) {
-      this.setData({ batchGenIndex: i });
-      await this.pollBatchGenTask(taskId, i);
-    }
-    this._batchSaving = false;
-    this._autoSaveAfterGen = false;
-    this.setData({ batchConfirming: false });
-    // 收集所有成功入库的花进 success 页（swiper 多花切换）
-    const confirmedList = this.data.batchList.filter((x) => x.confirmed);
-    const successCards = confirmedList
-      .map((x) => {
-        const c = x.candidates && x.candidates[x.selectedIndex];
-        if (!c || !c.species) return null;
-        return Object.assign({}, c.species, {
-          meetCount: x.meetCount,
-          newCard: x.newCard
-        });
-      })
-      .filter(Boolean);
-    if (successCards.length) {
-      this.setData({
-        phase: 'success',
-        successCard: successCards[0],
-        successCards,
-        successIndex: 0
-      });
-    } else {
-      this.setData({ phase: 'batch_result' });
-      util.showToast('入库失败，请重试');
-    }
-  },
-
-  async saveBatchItem(i) {
-    /**
-     * 单张自动入库（生成完成挂花种后调用）：成功 saveState=done（转圈→✓），失败 saveState=fail
-     * @param {number} i - 批量下标
-     * @returns {Promise<void>}
-     */
-    const list = this.data.batchList;
-    const item = list[i];
-    if (!item || item.status !== 'ok') return;
-    const c = item.candidates && item.candidates[item.selectedIndex];
-    if (!c || !c.species) return;
-    try {
-      const res = await util.callFunction('saveCard', {
-        action: 'create',
-        speciesId: c.species._id,
-        photoFileID: item.fileID
-      });
-      const next = list.slice();
-      next[i] = Object.assign({}, item, {
-        confirmed: true,
-        meetCount: res.meetCount,
-        newCard: res.newCard,
-        saveState: 'done'
-      });
-      this.setData({ batchList: next });
-    } catch (err) {
-      const next = list.slice();
-      next[i] = Object.assign({}, item, {
-        failMsg: err.message || '保存失败',
-        saveState: 'fail'
-      });
-      this.setData({ batchList: next });
-    }
+    doLock();
   },
 
   // confirmCollectedSave 已由 processBatchInOrder（按顺序逐张入库）取代
+  onBatchReupload(e) {
+    /**
+     * 清单中「重新上传」：nonPlant（未识别出花朵）/重复照片 重传一张新照片 → 上传识别 → 更新该张
+     * @param {Object} e - 事件对象，dataset.index 为批量下标
+     * @returns {void}
+     */
+    const idx = Number(e.currentTarget.dataset.index);
+    const item = this.data.batchList[idx];
+    if (!item) return;
+    // 当前页选 1 张新照片（只能一张），选后直接识别并回填该张
+    util
+      .chooseOneImage(['camera', 'album'])
+      .then((tempPath) => {
+        this.setData({ previewPath: tempPath, showSearch: false });
+        this._batchRetryIndex = idx;
+        this.runRecognize(tempPath); // 识别成功后经 handleRecognizeResult 回填 batchList
+      })
+      .catch((err) => {
+        if (err.errMsg && err.errMsg.indexOf('cancel') > -1) return;
+        util.showToast('无法打开相机/相册，请检查权限');
+      });
+  },
+
   async onBatchRetryDuplicate(e) {
     /**
      * 清单中「继续识别」重复照片：提示将消耗次数 → force 跳过 MD5 查重正常识别 → 写回清单
@@ -1044,6 +1139,8 @@ Page({
     list.splice(idx, 1);
     this.setData({ batchList: list, batchTotal: list.length });
     util.showToast('已删除', 'success');
+    // 实时同步识别任务（删除照片后任务 items 同步移除）
+    this.createIdentifiedTask();
   },
 
   onBatchPreviewPhoto(e) {

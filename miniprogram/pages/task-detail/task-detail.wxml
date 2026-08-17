@@ -1,0 +1,93 @@
+<!-- 识别任务详情页（三态）：identified 识别结果界面 / processing 识别中 / done 查看结果 -->
+<view class="page task-detail">
+  <view wx:if="{{loading}}" class="empty"><text class="empty-icon">⏳</text><view>加载中…</view></view>
+
+  <!-- 识花结果（已收录花 swiper） -->
+  <block wx:elif="{{showResult}}">
+    <view class="success-wrap fade-in">
+      <view class="success-badge">🎉 已收录 {{successCards.length}} 朵</view>
+      <swiper class="success-swiper" current="{{successIndex}}" bindchange="onSuccessChange">
+        <swiper-item wx:for="{{successCards}}" wx:key="speciesId">
+          <view class="success-card rarity-{{item.rarity}}">
+            <image wx:if="{{item.illustrationFileID}}" class="success-img" src="{{item.illustrationFileID}}" mode="aspectFill" />
+            <view wx:else class="success-img success-placeholder">🌷</view>
+            <view class="success-info">
+              <text class="success-name">{{item.cnName}}</text>
+              <text class="muted">{{item.latinName}}</text>
+              <text class="badge badge-{{item.rarity}} success-rarity">第 {{item.meetCount}} 次遇见</text>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+      <view wx:if="{{successCards.length > 1}}" class="success-indicator muted">{{successIndex + 1}} / {{successCards.length}}</view>
+      <view wx:if="{{pendingCount > 0}}" class="muted success-pending-tip">还有 {{pendingCount}} 朵在入库中，完成会持续更新</view>
+      <view class="btn-ghost success-btn" bindtap="backToList">返回任务列表</view>
+    </view>
+  </block>
+
+  <!-- identified：识别结果界面（照片+全部候选单选+确认入库） -->
+  <block wx:elif="{{status === 'identified'}}">
+    <view class="card batch-head-card">
+      <view class="batch-name">🕐 识别批次：{{batchName}}</view>
+      <view class="muted">已识别未入库，选择候选后可确认入库（后台生成）</view>
+    </view>
+    <view class="card task-items-card">
+      <view wx:for="{{items}}" wx:key="fileID" class="task-item">
+        <image class="task-item-thumb" src="{{item.fileID}}" mode="aspectFill" />
+        <view class="task-item-main">
+          <!-- 非植物/重复/失败：状态展示，无可选候选 -->
+          <block wx:if="{{item.itemStatus === 'nonPlant' || item.itemStatus === 'duplicate' || item.itemStatus === 'fail'}}">
+            <view class="task-item-name">{{item.itemStatus === 'nonPlant' ? '未识别出花朵' : (item.itemStatus === 'duplicate' ? '重复照片' : '识别失败')}}</view>
+            <view class="task-item-status task-item-fail">{{item.failMsg || '不入库'}}</view>
+          </block>
+          <!-- 正常：候选单选 -->
+          <block wx:else>
+            <view class="task-item-name">选择识别结果</view>
+            <view class="task-candidate-list">
+              <view
+                wx:for="{{item.candidates}}"
+                wx:for-item="c"
+                wx:for-index="ci"
+                wx:key="index"
+                class="task-candidate {{item.selectedIndex === ci ? 'task-candidate-active' : ''}}"
+                data-index="{{index}}"
+                data-cindex="{{ci}}"
+                bindtap="selectCandidate"
+              >
+                <text class="task-candidate-radio">{{item.selectedIndex === ci ? '●' : '○'}}</text>
+                <text>{{c.species ? c.species.cnName : c.name}}</text>
+                <text class="muted">{{c.scoreText}}</text>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+    <view class="btn-primary task-result-btn {{locking ? 'btn-disabled' : ''}}" bindtap="confirmIdentify">确认入库</view>
+  </block>
+
+  <!-- processing / done：识别中列表 + 状态按钮 -->
+  <block wx:else>
+    <view class="card batch-head-card">
+      <view class="batch-name">🕐 识别批次：{{batchName}}</view>
+      <view class="muted">识别任务后台执行中</view>
+    </view>
+    <view class="card task-items-card">
+      <view wx:for="{{items}}" wx:key="fileID" class="task-item">
+        <image class="task-item-thumb" src="{{item.fileID}}" mode="aspectFill" />
+        <view class="task-item-main">
+          <view class="task-item-name">{{item.speciesId ? item.name : (item.name || '未收录花')}}</view>
+          <view class="task-item-status {{item.statusClass}}">{{item.statusText}}</view>
+          <view wx:if="{{item.failMsg}}" class="muted task-item-failmsg">{{item.failMsg}}</view>
+        </view>
+        <view class="task-item-icon {{item.itemStatus === 'done' ? 'task-icon-done' : (item.itemStatus === 'fail' || item.itemStatus === 'nonPlant' || item.itemStatus === 'duplicate' ? 'task-icon-fail' : 'task-icon-spin')}}">
+          {{item.itemStatus === 'done' ? '✓' : (item.itemStatus === 'fail' || item.itemStatus === 'nonPlant' || item.itemStatus === 'duplicate' ? '✕' : '')}}
+        </view>
+      </view>
+    </view>
+    <!-- 状态按钮：识别中（置灰）或 查看部分结果 / 查看结果 -->
+    <view wx:if="{{status === 'processing' && successCards.length === 0}}" class="btn-primary task-result-btn btn-disabled">识别中…</view>
+    <view wx:elif="{{status === 'processing'}}" class="btn-primary task-result-btn" bindtap="viewResult">识别中，可查看部分结果</view>
+    <view wx:else class="btn-primary task-result-btn" bindtap="viewResult">查看结果</view>
+  </block>
+</view>
