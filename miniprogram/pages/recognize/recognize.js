@@ -871,16 +871,19 @@ Page({
       next[i] = Object.assign({}, next[i], { saveState: 'saving' });
     });
     this.setData({ batchList: next, batchConfirming: true });
-    // 按原顺序逐张处理
+    // 分两阶段，避免未收录花生成（慢/可能失败）阻塞已收录花入库：
+    // 阶段一：按原顺序，已收录花立即入库；未收录花触发生成任务并收集到队列
+    const genQueue = []; // { i, taskId } 未收录生成任务队列
     for (const { item, i } of pending) {
-      const c = this.data.batchList[i].candidates[this.data.batchList[i].selectedIndex];
+      const cur = this.data.batchList[i];
+      const c = cur.candidates && cur.candidates[cur.selectedIndex];
       if (!c) continue;
       if (c.species) {
-        // 已收录：直接入库
+        // 已收录：直接入库（秒级完成，不等待生成）
         await this.saveBatchItem(i);
       } else {
-        // 未收录：先生成（用置信度最高候选 candidates[0]，与默认选中一致）再自动入库
-        const genC = this.data.batchList[i].candidates[0];
+        // 未收录：触发生成任务（不阻塞后续已收录花），任务加入队列稍后串行轮询
+        const genC = cur.candidates[0]; // 用置信度最高候选生成（与默认选中一致）
         try {
           const res = await util.callFunction('requestFlowerGenerate', {
             name: genC.name,
@@ -888,22 +891,27 @@ Page({
             baikeDesc: genC.baike && genC.baike.description ? genC.baike.description : ''
           });
           if (res.alreadyExists && res.speciesId) {
+            // 已存在：直接挂花种并入库
             await this.attachSpeciesToBatch(i, res.speciesId);
             await this.saveBatchItem(i);
             continue;
           }
-          this.setData({ batchGenIndex: i });
-          await this.pollBatchGenTask(res.taskId, i);
+          genQueue.push({ i, taskId: res.taskId });
         } catch (err) {
-          const cur = this.data.batchList.slice();
-          cur[i] = Object.assign({}, cur[i], {
+          const cur2 = this.data.batchList.slice();
+          cur2[i] = Object.assign({}, cur2[i], {
             genState: err.code === 'GEN_LIMITED' ? 'no_quota' : 'failed',
             failMsg: err.message || '生成失败',
             saveState: 'fail'
           });
-          this.setData({ batchList: cur });
+          this.setData({ batchList: cur2 });
         }
       }
+    }
+    // 阶段二：已收录花全部入库后，串行处理未收录生成队列（每张生成完成自动入库）
+    for (const { i, taskId } of genQueue) {
+      this.setData({ batchGenIndex: i });
+      await this.pollBatchGenTask(taskId, i);
     }
     this._batchSaving = false;
     this._autoSaveAfterGen = false;

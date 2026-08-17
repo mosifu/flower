@@ -241,6 +241,14 @@ async function generateImage(prompt) {
   if (item.url) {
     return httpGetBuffer(item.url);
   }
+  // 解析平台错误：输入敏感检测（如花名触发 Seedream 内容安全）属外部策略拒绝，
+  // 重试无意义（每次都会撞同一堵墙），带 code 供上层立即置 failed 并提示用户
+  const errCode = (data && data.error && data.error.code) || '';
+  if (errCode === 'InputTextSensitiveContentDetected') {
+    const err = new Error('该花名未通过生图平台内容检测，无法生成花卡');
+    err.code = 'SEEDREAM_SENSITIVE';
+    throw err;
+  }
   throw new Error('Seedream 未返回图片: ' + JSON.stringify(data).slice(0, 200));
 }
 
@@ -436,7 +444,8 @@ exports.main = async () => {
       // 任务失败：违规立即置 failed 不退配额；否则进入重试队列，
       // 超过重试上限才置 failed 并退配额（避免重复退还）
       console.error('generateFlowerWorker 任务失败:', task._id, e);
-      const isUnsafe = e && (e.code === 'UNSAFE_TEXT' || e.code === 'UNSAFE_IMAGE');
+      // 内容策略拒绝（含生成文案/图片违规、Seedream 输入敏感）：立即置 failed，不重试不退配额
+      const isUnsafe = e && (e.code === 'UNSAFE_TEXT' || e.code === 'UNSAFE_IMAGE' || e.code === 'SEEDREAM_SENSITIVE');
       const newRetry = retryCount + 1;
       if (isUnsafe || newRetry >= MAX_RETRIES) {
         await taskCol.doc(task._id).update({
