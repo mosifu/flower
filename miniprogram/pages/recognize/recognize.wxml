@@ -79,13 +79,10 @@
           <!-- 右：提示区——默认「点击花名查看详情」；选中未收录花显示未收录提示；入库中/成功显示进度文案；重复照片显示删除 -->
           <view class="batch-item-tip">
             <!-- 重复照片：删除按钮 + 提示（未识别的照片不会入库） -->
-            <!-- 非植物/未识别出花朵：删除 + 重新上传 + 提示（不入库不生成） -->
+            <!-- 非植物/未识别出花朵：删除按钮 + 下方提示词（与重复识别一致，不入库不生成） -->
             <view wx:if="{{item.status === 'fail' && item.nonPlant && item.saveState === 'idle'}}" class="batch-tip-duplicate">
+              <view class="btn-ghost batch-op-btn batch-del-btn" data-index="{{index}}" bindtap="onBatchRemoveDuplicate">删除</view>
               <view class="batch-tip-dup-note">暂未识别出花朵</view>
-              <view class="batch-item-ops batch-tip-ops">
-                <view class="btn-ghost batch-op-btn batch-del-btn" data-index="{{index}}" bindtap="onBatchRemoveDuplicate">删除</view>
-                <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchReupload">重新上传</view>
-              </view>
             </view>
             <!-- 重复照片：删除 + 重新上传（未识别的照片不会入库） -->
             <view wx:elif="{{item.status === 'fail' && item.duplicate && item.saveState === 'idle'}}" class="batch-tip-duplicate">
@@ -114,7 +111,6 @@
         </view>
         <view wx:elif="{{item.status === 'fail' && item.nonPlant}}" class="batch-item-ops">
           <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchReupload">重新上传</view>
-          <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="onBatchSavePhoto">保存到相册</view>
         </view>
         <view wx:elif="{{item.status === 'fail'}}" class="batch-item-ops">
           <view class="btn-ghost batch-op-btn" data-index="{{index}}" bindtap="retryBatchItem">换一张重试</view>

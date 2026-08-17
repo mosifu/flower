@@ -57,6 +57,7 @@ Page({
         else if (it.itemStatus === 'fail') { statusText = '失败'; statusClass = 'task-item-fail'; }
         else if (it.itemStatus === 'nonPlant') { statusText = '未识别出花朵'; statusClass = 'task-item-fail'; }
         else if (it.itemStatus === 'duplicate') { statusText = '重复照片'; statusClass = 'task-item-fail'; }
+        else if (it.itemStatus === 'incomplete') { statusText = '识别未完成'; statusClass = 'task-item-fail'; }
         else if (t.status === 'identified') { statusText = '待确认'; statusClass = 'task-item-generating'; }
         return Object.assign({}, it, {
           statusText,
@@ -139,7 +140,7 @@ Page({
     // 锁定 items：只存每张选中候选（identified 阶段存全部候选，确认后锁定）
     const items = this.data.items.map((it) => {
       const c = it.currentCandidate || null;
-      if (it.itemStatus === 'nonPlant' || it.itemStatus === 'duplicate' || it.itemStatus === 'fail') {
+      if (it.itemStatus === 'nonPlant' || it.itemStatus === 'duplicate' || it.itemStatus === 'fail' || it.itemStatus === 'incomplete') {
         return { fileID: it.fileID, itemStatus: it.itemStatus, failMsg: it.failMsg || '' };
       }
       return {

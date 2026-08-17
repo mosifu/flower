@@ -35,9 +35,9 @@
       <view wx:for="{{items}}" wx:key="fileID" class="task-item">
         <image class="task-item-thumb" src="{{item.fileID}}" mode="aspectFill" />
         <view class="task-item-main">
-          <!-- 非植物/重复/失败：状态展示，无可选候选 -->
-          <block wx:if="{{item.itemStatus === 'nonPlant' || item.itemStatus === 'duplicate' || item.itemStatus === 'fail'}}">
-            <view class="task-item-name">{{item.itemStatus === 'nonPlant' ? '未识别出花朵' : (item.itemStatus === 'duplicate' ? '重复照片' : '识别失败')}}</view>
+          <!-- 非植物/重复/失败/识别未完成：状态展示，无可选候选 -->
+          <block wx:if="{{item.itemStatus === 'nonPlant' || item.itemStatus === 'duplicate' || item.itemStatus === 'fail' || item.itemStatus === 'incomplete'}}">
+            <view class="task-item-name">{{item.itemStatus === 'nonPlant' ? '未识别出花朵' : (item.itemStatus === 'duplicate' ? '重复照片' : (item.itemStatus === 'incomplete' ? '识别未完成' : '识别失败'))}}</view>
             <view class="task-item-status task-item-fail">{{item.failMsg || '不入库'}}</view>
           </block>
           <!-- 正常：候选单选 -->

@@ -8,7 +8,7 @@
  *   默认时 items: [{ fileID, speciesId?, name?, score?, baikeDesc?, itemStatus? }]
  * 返回：{ ok, taskId, batchName }
  * 说明：
- * - 「存在任务」（identified/pending/processing）并发上限 MAX_TASKS（3）条（识别有记录，identified 也占名额）；
+ * - 并发上限仅针对后台执行任务（pending/processing）MAX_TASKS（3）条；identified（已识别未入库）是记录，不占名额；
  * - 批次名 YYYY-MM-DD_HH-mm-ss；创建后由 batchSaveWorker 处理（identified 需先确认入库转 pending）。
  * 环境变量：无
  */
@@ -19,7 +19,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-// 存在任务（identified/pending/processing）并发上限（条）：识别有记录原则下，未入库/入库中都计
+// 后台执行任务并发上限（条）：pending/processing 最多 3 条；identified（识别记录）不占名额
 const MAX_TASKS = 3;
 
 function nowStr() {
@@ -94,11 +94,14 @@ exports.main = async (event) => {
     }
     // 校验 fileID + 模式特定字段
     const normItems = items.map((it) => {
-      if (!it || typeof it.fileID !== 'string' || !it.fileID) {
+      // identified 占位（识别刚开始创建时）：fileID/candidates 可空，itemStatus=incomplete，识别完成后回填；
+      // 非占位（锁定模式）fileID 必填（后台 saveCard 用）
+      const isPlaceholder = mode === 'identified' && it.itemStatus === 'incomplete';
+      if (!isPlaceholder && (!it || typeof it.fileID !== 'string' || !it.fileID)) {
         throw Object.assign(new Error('照片 fileID 不合法'), { code: 'BAD_PARAM' });
       }
       if (mode === 'identified') {
-        if (!Array.isArray(it.candidates) || !it.candidates.length) {
+        if (!isPlaceholder && (!Array.isArray(it.candidates) || !it.candidates.length)) {
           throw Object.assign(new Error('identified 任务需候选信息'), { code: 'BAD_PARAM' });
         }
         return normalizeIdentifiedItem(it);
@@ -109,12 +112,13 @@ exports.main = async (event) => {
       return normalizeLockedItem(it);
     });
 
-    // 并发上限：存在任务（identified/pending/processing）>= 3 则拒绝
+    // 并发上限：仅针对「后台执行」任务（pending/processing）>= MAX_TASKS（3）则拒绝；
+    // identified（已识别未入库）是记录性质，不占名额（识别有记录，可多条待确认）
     const existRes = await db
       .collection('batch_tasks')
       .where({
         openid: OPENID,
-        status: _.in(['identified', 'pending', 'processing'])
+        status: _.in(['pending', 'processing'])
       })
       .count();
     if (existRes.total >= MAX_TASKS) {

@@ -225,9 +225,9 @@ async function processTask(task) {
 
   for (let i = 0; i < items.length; i++) {
     const it = items[i];
-    // 终态/特殊态跳过：done/fail 终态；nonPlant（未识别出花朵）/duplicate（重复照片）不入库，任务中如实保留供详情展示
+    // 终态/特殊态跳过：done/fail 终态；nonPlant（未识别出花朵）/duplicate（重复照片）/incomplete（识别未完成）不入库，任务中如实保留供详情展示
     if (it.itemStatus === 'done' || it.itemStatus === 'fail') continue;
-    if (it.itemStatus === 'nonPlant' || it.itemStatus === 'duplicate') continue;
+    if (it.itemStatus === 'nonPlant' || it.itemStatus === 'duplicate' || it.itemStatus === 'incomplete') continue;
 
     if (it.speciesId) {
       // 已收录花：直接入库

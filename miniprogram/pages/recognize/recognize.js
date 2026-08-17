@@ -196,6 +196,9 @@ Page({
       batchConfirming: false
     });
 
+    // 识别有记录：批量识别刚开始即创建 identified 占位任务（逐张识别结果回填，识别中断也保留已识别部分）
+    this.createIdentifiedTask();
+
     // 逐张串行：每张独立上传+识别，失败跳过继续下一张
     for (let i = 0; i < tempPaths.length; i++) {
       this.setData({ batchIndex: i });
@@ -215,6 +218,7 @@ Page({
             fileID
           });
           this.setData({ batchList: list });
+          this.createIdentifiedTask(); // 识别有记录：重复张也回填任务
           continue;
         }
         this.handleBatchResult(i, res, fileID);
@@ -228,6 +232,7 @@ Page({
           fileID: ''
         });
         this.setData({ batchList: list });
+        this.createIdentifiedTask(); // 识别有记录：失败张也回填任务
       }
     }
     // 全部处理完：进入清单确认（识别有记录——先创建 identified 任务，用户随时退出不丢结果）
@@ -244,14 +249,17 @@ Page({
      * 若已存在对应任务则同步更新（清单操作后调用）
      * @returns {Promise<void>}
      */
-    // 组装 identified items：该批次全部照片 + 全部候选（非植物/重复/失败如实记录）
+    // 组装 identified items：该批次全部照片 + 全部候选（非植物/重复/失败如实记录）；
+    // 识别未完成（无 fileID，如批量识别进行中/中断）标记 incomplete 占位，识别完成后回填
     const items = this.data.batchList.map((it) => {
-      // 各状态 item：identified 记录候选；nonPlant/duplicate/fail 也保留供详情展示
+      const isIncomplete = !it.fileID; // 尚未完成识别上传的张
       return {
-        fileID: it.fileID,
-        itemStatus: it.status === 'ok'
-          ? 'identified'
-          : (it.nonPlant ? 'nonPlant' : (it.duplicate ? 'duplicate' : 'fail')),
+        fileID: it.fileID || '',
+        itemStatus: isIncomplete
+          ? 'incomplete'
+          : (it.status === 'ok'
+              ? 'identified'
+              : (it.nonPlant ? 'nonPlant' : (it.duplicate ? 'duplicate' : 'fail'))),
         candidates: (it.candidates || []).map((c) => ({
           name: c.name,
           score: c.score,
@@ -314,6 +322,8 @@ Page({
       remaining: res.remaining,
       limit: res.limit
     });
+    // 识别有记录：逐张识别完成即回填任务（识别中断也保留已识别部分）
+    this.createIdentifiedTask();
   },
 
   /**
@@ -342,6 +352,7 @@ Page({
         status: isNonPlant ? 'fail' : 'ok',
         failMsg: isNonPlant ? '暂未识别出花朵' : '',
         nonPlant: isNonPlant,
+        tempPath, // 重新上传后更新照片预览为最新照片
         fileID,
         candidates,
         selectedIndex: 0,
@@ -1133,7 +1144,8 @@ Page({
     const idx = Number(e.currentTarget.dataset.index);
     const list = this.data.batchList.slice();
     const item = list[idx];
-    if (!item || !item.duplicate) return;
+    // 重复照片 或 非植物（未识别出花朵）均可删除
+    if (!item || (!item.duplicate && !item.nonPlant)) return;
     // 清理已上传的临时文件（识别未消耗次数，文件无保留价值）
     if (item.fileID) util.deleteCloudFile(item.fileID);
     list.splice(idx, 1);
