@@ -1,4 +1,6 @@
 /* ===== 识别任务详情页 ===== */
+
+/* 顶部批次信息卡 */
 .batch-head-card {
   margin-bottom: 20rpx;
 }
@@ -9,139 +11,256 @@
   margin-bottom: 8rpx;
 }
 
+/* 照片清单卡片 */
 .task-items-card {
   padding: 24rpx;
 }
 
+/* 每张照片条目：实线分割 + 头部与操作区纵向堆叠（与识别结果界面 batch-item 一致） */
 .task-item {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  padding: 16rpx 0;
-  border-bottom: 1rpx dashed #efe9da;
+  border-bottom: 2rpx solid #e4dcc8;
+  padding-bottom: 20rpx;
+  margin-bottom: 20rpx;
 }
 
 .task-item:last-child {
   border-bottom: none;
+  margin-bottom: 0;
 }
 
+/* ===== identified 三列布局（与识别结果界面一致）：左照片固定 | 中候选Top3+单选 | 右提示区固定 ===== */
+.task-item-head {
+  display: flex;
+  align-items: stretch;
+  gap: 16rpx;
+}
+
+/* 左列照片：固定 150rpx 方图（flex-shrink 固定列宽），点击全屏预览 */
 .task-item-thumb {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 12rpx;
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 14rpx;
   background: #f5f1e4;
   flex-shrink: 0;
+  box-shadow: 0 4rpx 10rpx rgba(120, 100, 60, 0.12);
 }
 
+/* 中列候选：flex 占剩余宽度 */
 .task-item-main {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 8rpx;
 }
 
+/* 中列状态文案（重复/非植物/中断/失败/未收录） */
 .task-item-name {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
-}
-
-.task-item-status {
-  font-size: 22rpx;
-  align-self: flex-start;
-  padding: 2rpx 14rpx;
-  border-radius: 999rpx;
-}
-
-.task-item-done {
-  color: #3e7d5c;
-  background: #eaf5ea;
-}
-
-.task-item-generating {
-  color: #8a8374;
-  background: #f0ece0;
 }
 
 .task-item-fail {
   color: #c0392b;
-  background: #fbeceb;
+  font-weight: 400;
 }
 
-.task-item-failmsg {
-  font-size: 22rpx;
-}
-/* identified 识别结果界面：候选单选 */
-.task-candidate-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-  margin-top: 8rpx;
-}
-
-.task-candidate {
+/* 候选行：整行点击仅切换选中（互斥单选），不弹窗 */
+.task-candidate-row {
   display: flex;
   align-items: center;
-  gap: 10rpx;
-  padding: 8rpx 12rpx;
+  gap: 8rpx;
+  padding: 8rpx 10rpx;
   border-radius: 10rpx;
   font-size: 26rpx;
   background: #f7f4ec;
 }
 
-.task-candidate-active {
+.task-candidate-row-active {
   background: rgba(143, 201, 154, 0.25);
 }
 
-.task-candidate-radio {
-  color: #3e7d5c;
-  font-size: 22rpx;
-}
-
-.btn-disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* 状态图标 */
-.task-item-icon {
-  width: 44rpx;
-  height: 44rpx;
-  line-height: 42rpx;
+/* 单选圆钮：三候选互斥（与识别结果界面 batch-radio 同款，选中绿底白点） */
+.task-radio {
+  width: 32rpx;
+  height: 32rpx;
+  line-height: 30rpx;
   text-align: center;
   border-radius: 50%;
-  font-size: 24rpx;
+  border: 2rpx solid #cbbfa0;
+  color: transparent;
+  font-size: 20rpx;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
-.task-icon-done {
+.task-radio-on {
+  border-color: #3e7d5c;
   background: #3e7d5c;
   color: #fff;
 }
 
-.task-icon-fail {
-  background: #c0392b;
-  color: #fff;
+/* 花名：可点击查看花朵详情弹窗（catchtap 阻止冒泡，不触发整行选中） */
+.task-candidate-row-name {
+  color: #3e7d5c;
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.task-icon-spin {
-  border: 4rpx solid #d5cbb0;
-  border-top-color: #3e7d5c;
-  border-radius: 50%;
-  animation: task-spin 0.9s linear infinite;
+/* 右列提示区：固定 170rpx 宽（flex-shrink 固定列宽），内容居中 */
+.task-item-tip {
+  width: 170rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 重复/非植物提示：删除按钮在上 + 提示语在下 */
+.task-tip-duplicate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  width: 100%;
+}
+
+.task-tip-dup-note {
+  font-size: 20rpx;
+  color: #9a948a;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* 已收录花默认提示 */
+.task-tip-default {
+  font-size: 22rpx;
+  color: #9a948a;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* 识别中断/失败提示语 */
+.task-tip-note {
+  font-size: 22rpx;
+  color: #9a948a;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* 未收录花提示区：生成入口胶囊铺满提示列 */
+.task-tip-uncollected {
+  width: 100%;
+}
+
+.task-tip-uncollected .gen-btn {
+  font-size: 22rpx;
+  padding: 10rpx 12rpx;
+  width: 100%;
   box-sizing: border-box;
+  text-align: center;
 }
 
-@keyframes task-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* 未收录生成入口胶囊（与识别结果界面同款，纯提示：确认入库后后台生成） */
+.gen-btn {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  background: #eaf5ea;
+  color: #3e7d5c;
+  font-size: 24rpx;
+  border: 2rpx solid #9fc9a6;
+}
+
+.gen-btn-tip {
+  opacity: 0.7;
+}
+
+/* 下方操作区（与识别结果界面一致）：重复「继续识别 + 重新上传」/ 非植物「重新上传」 */
+.task-item-ops {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.task-op-btn {
+  font-size: 24rpx;
+  padding: 10rpx 28rpx;
+  margin: 0;
+}
+
+/* 提示区内删除按钮（红色弱化；须置于 .task-op-btn 之后以覆盖其字号/内边距） */
+.task-del-btn {
+  font-size: 22rpx;
+  padding: 8rpx 24rpx;
+  margin: 0;
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+/* 确认入库按钮：提交中禁用（防重复提交） */
+.btn-disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .task-result-btn {
   margin-top: 24rpx;
 }
 
-/* 识花结果（复用 success 视觉） */
+/* ===== 花信息弹窗（与识别结果界面一致）：点击候选花名弹出 ===== */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  width: 600rpx;
+  max-height: 72vh;
+  /* 弹窗背景与全局主题浅绿色一致（#eaf5ea） */
+  background: #eaf5ea;
+  border-radius: 24rpx;
+  padding: 32rpx 28rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #3e7d5c;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+}
+
+.modal-btn {
+  width: 100%;
+}
+
+.flower-info-desc {
+  font-size: 26rpx;
+  color: #4a463c;
+  line-height: 1.7;
+  margin-top: 16rpx;
+  border-top: 1rpx dashed #e4dcc8;
+  padding-top: 16rpx;
+}
+
+/* ===== 识花结果（已收录花 swiper） ===== */
 .success-wrap { text-align: center; padding-top: 40rpx; }
 .success-badge { font-size: 36rpx; font-weight: 700; color: #3e7d5c; margin-bottom: 28rpx; }
 .success-swiper { height: 620rpx; }

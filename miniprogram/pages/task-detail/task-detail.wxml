@@ -25,69 +25,95 @@
     </view>
   </block>
 
-  <!-- identified：识别结果界面（照片+全部候选单选+确认入库） -->
+  <!-- identified（已识别未入库）：三列布局与识别结果页 batch_result 完全一致（左照片 | 中候选Top3+单选 | 右提示区） -->
   <block wx:elif="{{status === 'identified'}}">
     <view class="card batch-head-card">
       <view class="batch-name">🕐 识别批次：{{batchName}}</view>
-      <view class="muted">已识别未入库，选择候选后可确认入库（后台生成）</view>
+      <view class="muted">已识别未入库，可编辑，确认入库后后台生成</view>
     </view>
     <view class="card task-items-card">
       <view wx:for="{{items}}" wx:key="fileID" class="task-item">
-        <image class="task-item-thumb" src="{{item.fileID}}" mode="aspectFill" />
-        <view class="task-item-main">
-          <!-- 非植物/重复/失败/识别未完成：状态展示，无可选候选 -->
-          <block wx:if="{{item.itemStatus === 'nonPlant' || item.itemStatus === 'duplicate' || item.itemStatus === 'fail' || item.itemStatus === 'incomplete'}}">
-            <view class="task-item-name">{{item.itemStatus === 'nonPlant' ? '未识别出花朵' : (item.itemStatus === 'duplicate' ? '重复照片' : (item.itemStatus === 'incomplete' ? '识别未完成' : '识别失败'))}}</view>
-            <view class="task-item-status task-item-fail">{{item.failMsg || '不入库'}}</view>
-          </block>
-          <!-- 正常：候选单选 -->
-          <block wx:else>
-            <view class="task-item-name">选择识别结果</view>
-            <view class="task-candidate-list">
+        <!-- 三列布局（与识别结果界面一致）：左照片固定 | 中候选Top3+单选 | 右提示区固定 -->
+        <view class="task-item-head">
+          <!-- 左：照片固定 150rpx，点击全屏预览 -->
+          <image class="task-item-thumb" src="{{item.fileID}}" mode="aspectFill" data-fileid="{{item.fileID}}" bindtap="previewItemPhoto" />
+          <!-- 中：候选 Top3 + 单选（互斥），点击整行仅选中不弹窗 -->
+          <view class="task-item-main">
+            <block wx:if="{{item.itemStatus === 'identified' && item.candidates.length}}">
               <view
                 wx:for="{{item.candidates}}"
                 wx:for-item="c"
                 wx:for-index="ci"
                 wx:key="index"
-                class="task-candidate {{item.selectedIndex === ci ? 'task-candidate-active' : ''}}"
+                class="task-candidate-row {{item.selectedIndex === ci ? 'task-candidate-row-active' : ''}}"
                 data-index="{{index}}"
                 data-cindex="{{ci}}"
                 bindtap="selectCandidate"
               >
-                <text class="task-candidate-radio">{{item.selectedIndex === ci ? '●' : '○'}}</text>
-                <text>{{c.species ? c.species.cnName : c.name}}</text>
+                <!-- 单选圆钮：三候选互斥（与识别结果界面同款） -->
+                <view class="task-radio {{item.selectedIndex === ci ? 'task-radio-on' : ''}}">{{item.selectedIndex === ci ? '●' : '○'}}</view>
+                <!-- 花名：点击查看花朵详情弹窗（catchtap 不触发整行选中） -->
+                <text
+                  class="task-candidate-row-name"
+                  data-index="{{index}}"
+                  data-cindex="{{ci}}"
+                  catchtap="onItemFlowerNameTap"
+                >{{c.species ? c.species.cnName : c.name}}</text>
                 <text class="muted">{{c.scoreText}}</text>
               </view>
+            </block>
+            <view wx:elif="{{item.itemStatus === 'duplicate'}}" class="task-item-name task-item-fail">❌ 重复照片</view>
+            <view wx:elif="{{item.itemStatus === 'nonPlant'}}" class="task-item-name task-item-fail">❌ 未识别出花朵</view>
+            <view wx:elif="{{item.itemStatus === 'incomplete'}}" class="task-item-name muted">识别未完成</view>
+            <view wx:elif="{{item.itemStatus === 'fail'}}" class="task-item-name task-item-fail">❌ {{item.failMsg || '识别失败'}}</view>
+            <view wx:else class="task-item-name muted">暂未收录图鉴</view>
+          </view>
+          <!-- 右：提示区（与识别结果界面一致）：删除在上提示在下 / 已收录默认提示 / 未收录生成提示 -->
+          <view class="task-item-tip">
+            <!-- 非植物：删除按钮 + 提示语（删除在上、提示在下） -->
+            <view wx:if="{{item.itemStatus === 'nonPlant'}}" class="task-tip-duplicate">
+              <view class="btn-ghost task-op-btn task-del-btn" data-index="{{index}}" bindtap="onItemRemove">删除</view>
+              <view class="task-tip-dup-note">暂未识别出花朵</view>
             </view>
-          </block>
+            <!-- 重复照片：删除按钮 + 提示语 -->
+            <view wx:elif="{{item.itemStatus === 'duplicate'}}" class="task-tip-duplicate">
+              <view class="btn-ghost task-op-btn task-del-btn" data-index="{{index}}" bindtap="onItemRemove">删除</view>
+              <view class="task-tip-dup-note">未识别的照片不会入库</view>
+            </view>
+            <!-- 识别成功：默认提示 / 未收录提示（随选中候选动态切换，与识别结果界面一致） -->
+            <view wx:elif="{{item.itemStatus === 'identified' && item.candidates.length}}">
+              <view wx:if="{{item.candidates[item.selectedIndex].species}}" class="task-tip-default">点击花名查看花朵详情</view>
+              <view wx:else class="task-tip-uncollected">
+                <view class="gen-btn gen-btn-tip">✨ 未收录，确认入库后自动生成</view>
+              </view>
+            </view>
+            <!-- 识别中断 / 识别失败：仅提示语 -->
+            <view wx:elif="{{item.itemStatus === 'incomplete'}}" class="task-tip-note">识别中断，未入库</view>
+            <view wx:elif="{{item.itemStatus === 'fail'}}" class="task-tip-note">{{item.failMsg || '识别失败'}}</view>
+          </view>
+        </view>
+
+        <!-- 下方操作区（与识别结果界面一致）：重复照片「继续识别 + 重新上传」；非植物「重新上传」 -->
+        <view wx:if="{{item.itemStatus === 'duplicate'}}" class="task-item-ops">
+          <view class="btn-ghost task-op-btn" data-index="{{index}}" bindtap="onItemRetryDuplicate">继续识别（消耗 1 次）</view>
+          <view class="btn-ghost task-op-btn" data-index="{{index}}" bindtap="onItemReupload">重新上传</view>
+        </view>
+        <view wx:elif="{{item.itemStatus === 'nonPlant'}}" class="task-item-ops">
+          <view class="btn-ghost task-op-btn" data-index="{{index}}" bindtap="onItemReupload">重新上传</view>
         </view>
       </view>
     </view>
     <view class="btn-primary task-result-btn {{locking ? 'btn-disabled' : ''}}" bindtap="confirmIdentify">确认入库</view>
-  </block>
 
-  <!-- processing / done：识别中列表 + 状态按钮 -->
-  <block wx:else>
-    <view class="card batch-head-card">
-      <view class="batch-name">🕐 识别批次：{{batchName}}</view>
-      <view class="muted">识别任务后台执行中</view>
-    </view>
-    <view class="card task-items-card">
-      <view wx:for="{{items}}" wx:key="fileID" class="task-item">
-        <image class="task-item-thumb" src="{{item.fileID}}" mode="aspectFill" />
-        <view class="task-item-main">
-          <view class="task-item-name">{{item.speciesId ? item.name : (item.name || '未收录花')}}</view>
-          <view class="task-item-status {{item.statusClass}}">{{item.statusText}}</view>
-          <view wx:if="{{item.failMsg}}" class="muted task-item-failmsg">{{item.failMsg}}</view>
-        </view>
-        <view class="task-item-icon {{item.itemStatus === 'done' ? 'task-icon-done' : (item.itemStatus === 'fail' || item.itemStatus === 'nonPlant' || item.itemStatus === 'duplicate' ? 'task-icon-fail' : 'task-icon-spin')}}">
-          {{item.itemStatus === 'done' ? '✓' : (item.itemStatus === 'fail' || item.itemStatus === 'nonPlant' || item.itemStatus === 'duplicate' ? '✕' : '')}}
-        </view>
+    <!-- 花信息弹窗（与识别结果界面一致）：点击候选花名弹出，统一展示百科描述 -->
+    <view wx:if="{{showFlowerInfo}}" class="modal-mask" bindtap="closeFlowerInfo">
+      <view class="modal" catchtap="noop">
+        <view class="modal-title">{{flowerInfo.cnName}}</view>
+        <scroll-view scroll-y class="modal-body">
+          <view class="flower-info-desc">{{flowerInfo.description || '暂无描述'}}</view>
+        </scroll-view>
+        <view class="btn-primary modal-btn" bindtap="closeFlowerInfo">知道了</view>
       </view>
     </view>
-    <!-- 状态按钮：识别中（置灰）或 查看部分结果 / 查看结果 -->
-    <view wx:if="{{status === 'processing' && successCards.length === 0}}" class="btn-primary task-result-btn btn-disabled">识别中…</view>
-    <view wx:elif="{{status === 'processing'}}" class="btn-primary task-result-btn" bindtap="viewResult">识别中，可查看部分结果</view>
-    <view wx:else class="btn-primary task-result-btn" bindtap="viewResult">查看结果</view>
   </block>
 </view>
