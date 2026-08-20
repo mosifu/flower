@@ -116,4 +116,45 @@
       </view>
     </view>
   </block>
+
+  <!-- processing（识别中/已提交/终态）：确认入库后展示——照片 + 入库进度（转圈/✓/❌）+ 底部按钮（识别中/查看识别结果） -->
+  <block wx:elif="{{status === 'pending' || status === 'processing' || status === 'done' || status === 'partial' || status === 'failed'}}">
+    <view class="card batch-head-card">
+      <view class="batch-name">🕐 识别批次：{{batchName}}</view>
+      <!-- 入库进度提示：还有 N 朵在入库中（实时更新） -->
+      <view wx:if="{{pendingCount > 0}}" class="muted">正在入库中，还有 {{pendingCount}} 朵在入库，可回首页操作</view>
+      <view wx:else class="muted">全部入库完成</view>
+    </view>
+    <view class="card task-items-card">
+      <view wx:for="{{items}}" wx:key="fileID" class="task-item">
+        <!-- 三列布局（与识别结果界面一致）：左照片 | 中入库进度 | 右提示区 -->
+        <view class="task-item-head">
+          <!-- 左：照片固定尺寸，点击全屏预览 -->
+          <image class="task-item-thumb" src="{{item.fileID}}" mode="aspectFill" data-fileid="{{item.fileID}}" bindtap="previewItemPhoto" />
+          <!-- 中：入库进度——已完成 ✓+花名 / 失败 ❌+原因 / 处理中 转圈+花名（只显示确认时选中的那一株） -->
+          <view class="task-item-main">
+            <view wx:if="{{item.itemStatus === 'done'}}" class="task-saving-row">
+              <view class="task-done-mark">✓</view>
+              <text class="task-saving-name">{{item.displayName}}</text>
+            </view>
+            <view wx:elif="{{item.itemStatus === 'fail'}}" class="task-item-name task-item-fail">❌ {{item.failMsg || '入库失败'}}</view>
+            <view wx:else class="task-saving-row">
+              <view class="task-spinner"></view>
+              <text class="task-saving-name">{{item.displayName || '识别中…'}}</text>
+            </view>
+          </view>
+          <!-- 右：提示区（与识别结果界面一致） -->
+          <view class="task-item-tip">
+            <view wx:if="{{item.itemStatus === 'done'}}" class="task-tip-done">入库成功</view>
+            <view wx:elif="{{item.itemStatus === 'fail'}}" class="task-tip-note">{{item.failMsg || '入库失败'}}</view>
+            <view wx:else class="task-tip-saving">正在入库中…</view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 底部按钮：无已入库 → 「识别中」置灰不可点；有已入库 → 「查看识别结果」可点（轮询实时更新） -->
+    <view class="btn-primary task-result-btn {{doneCount > 0 ? '' : 'btn-disabled'}}" bindtap="viewResult">
+      {{doneCount > 0 ? '查看识别结果' : '识别中'}}
+    </view>
+  </block>
 </view>

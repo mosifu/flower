@@ -12,6 +12,7 @@ Page({
     successCards: [],   // 已收录成功的花（识花结果 swiper）
     successIndex: 0,
     pendingCount: 0,   // 仍在入库中的花数量
+    doneCount: 0,      // 已入库完成的花数量（识别中视图按钮状态：有成品才可查看结果）
     locking: false,    // identified 确认入库中（防重复）
     showFlowerInfo: false, // 花信息弹窗显示（点击候选花名查看详情，与识别结果界面一致）
     flowerInfo: null       // 弹窗中的花详情（候选项内 baike/species 组装）
@@ -71,11 +72,12 @@ Page({
         items,
         status: t.status || '',
         pendingCount,
+        doneCount,
         loading: false
       });
-      // 终态/识别中：计算 successCards（识花结果）
+      // 识别中/终态：组装识别中视图（displayName 花名 + 识花结果 swiper）；5s 轮询刷新 → 随入库进度实时更新
       if (t.status !== 'identified') {
-        this.buildSuccessCards(items);
+        await this.buildProcessingView(items);
       }
     } catch (e) {
       this.setData({ loading: false });
@@ -83,19 +85,39 @@ Page({
     }
   },
 
-  async buildSuccessCards(items) {
+  async buildProcessingView(items) {
     /**
-     * 计算已收录成功花（识花结果 swiper），补拉花名
-     * @param {Array} items - 任务照片
+     * 识别中/终态视图数据组装：一次拉取全部 speciesId 的花名（去重并行），
+     * 给每张照片挂 displayName（已收录用知识库名，未收录用百度名），
+     * 并计算识花结果 swiper（successCards）；识别中 5s 轮询调用 → 随入库进度实时更新
+     * @param {Array} items - 任务照片（锁定后 itemStatus 为 pending/generating/done/fail）
      * @returns {Promise<void>}
      */
-    const doneItems = items.filter((x) => x.itemStatus === 'done' && x.speciesId);
-    const cards = [];
-    for (const x of doneItems) {
+    // 1. 去重收集需展示花名的 speciesId，并行拉取（避免逐张串行请求）
+    const ids = [];
+    items.forEach((it) => {
+      if (it.speciesId && ids.indexOf(it.speciesId) === -1) ids.push(it.speciesId);
+    });
+    const spMap = {};
+    await Promise.all(ids.map(async (sid) => {
       try {
-        const spRes = await util.callFunction('getCollection', { speciesId: x.speciesId });
+        const spRes = await util.callFunction('getCollection', { speciesId: sid });
         const sp = spRes.list && spRes.list[0];
-        cards.push({
+        if (sp) spMap[sid] = sp;
+      } catch (err) { /* 单个失败回退百度名 */ }
+    }));
+    // 2. 每张照片展示名：已收录用知识库中文名，未收录用百度识别名（兜底「花」）
+    const decorated = items.map((it) => Object.assign({}, it, {
+      displayName: it.speciesId && spMap[it.speciesId]
+        ? spMap[it.speciesId].cnName
+        : (it.name || '花')
+    }));
+    // 3. 识花结果 swiper：已入库（done）的花，花名/插画/稀有度来自知识库
+    const cards = decorated
+      .filter((x) => x.itemStatus === 'done' && x.speciesId)
+      .map((x) => {
+        const sp = spMap[x.speciesId] || null;
+        return {
           speciesId: x.speciesId,
           cnName: (sp && sp.cnName) || '已收录',
           latinName: (sp && sp.latinName) || '',
@@ -103,12 +125,9 @@ Page({
           illustrationFileID: (sp && sp.illustrationFileID) || '',
           meetCount: x.meetCount,
           newCard: x.newCard
-        });
-      } catch (err) {
-        cards.push({ speciesId: x.speciesId, cnName: '已收录', rarity: 'common', meetCount: x.meetCount });
-      }
-    }
-    this.setData({ successCards: cards });
+        };
+      });
+    this.setData({ items: decorated, successCards: cards });
   },
 
   // ---- identified 三态操作 ----
@@ -325,12 +344,15 @@ Page({
      * @returns {Promise<void>}
      */
     if (this.data.locking) return;
-    // 锁定 items：只存每张选中候选（identified 阶段存全部候选，确认后锁定）
-    const items = this.data.items.map((it) => {
-      const c = it.currentCandidate || null;
-      if (it.itemStatus === 'nonPlant' || it.itemStatus === 'duplicate' || it.itemStatus === 'fail' || it.itemStatus === 'incomplete') {
-        return { fileID: it.fileID, itemStatus: it.itemStatus, failMsg: it.failMsg || '' };
-      }
+    // 只锁定可入库项：identified 且已选中候选（非植物/重复/识别失败/中断等不入库，不传给锁定接口）
+    const eligible = this.data.items.filter((it) => it.itemStatus === 'identified' && it.currentCandidate);
+    if (!eligible.length) {
+      util.showToast('没有可确认入库的花');
+      return;
+    }
+    // 锁定 items：每张只存选中候选（已收录花存 speciesId，未收录花存百度名待后台生成）
+    const items = eligible.map((it) => {
+      const c = it.currentCandidate;
       return {
         fileID: it.fileID,
         speciesId: c && c.species ? c.species._id : '',
@@ -358,26 +380,14 @@ Page({
 
   viewResult() {
     /**
-     * 查看识花结果：有花已入库即可查看；未完成的花提示继续入库中
+     * 查看识花结果：有花已入库即可直接打开结果页（结果页内自带「还有 N 朵在入库中」提示，轮询实时更新）
      * @returns {void}
      */
-    const done = this.data.successCards;
-    if (!done.length) {
+    if (!this.data.successCards.length) {
       util.showToast('还没有花完成入库');
       return;
     }
-    const pending = this.data.pendingCount;
-    const openResult = () => this.setData({ showResult: true, successIndex: 0 });
-    if (pending > 0) {
-      wx.showModal({
-        title: '查看识花结果',
-        content: `还有 ${pending} 朵花在入库中，已收录的花可先查看。确定查看吗？`,
-        confirmText: '查看',
-        success: (r) => { if (r.confirm) openResult(); }
-      });
-    } else {
-      openResult();
-    }
+    this.setData({ showResult: true, successIndex: 0 });
   },
 
   onSuccessChange(e) {
