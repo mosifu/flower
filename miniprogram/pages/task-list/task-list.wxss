@@ -5,61 +5,6 @@
   gap: 20rpx;
 }
 
-/* 左滑容器：内容层与右侧操作层叠放，内容层可向左位移露出操作区 */
-.swipe-wrap {
-  position: relative;
-  overflow: hidden;
-  border-radius: 20rpx;
-}
-
-/* 右侧操作区：固定铺在容器右侧，内容层位移后露出（删除按钮 / 正在入库中提示） */
-.swipe-actions {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 180rpx;
-  display: flex;
-  align-items: stretch;
-}
-
-/* 删除按钮：红色底白字，占满操作区 */
-.swipe-del {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #c0392b;
-  color: #fff;
-  font-size: 26rpx;
-  border-radius: 0 20rpx 20rpx 0;
-}
-
-/* 正在入库中提示：灰底，占满操作区 */
-.swipe-tip {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f0ece0;
-  color: #8a8374;
-  font-size: 22rpx;
-  border-radius: 0 20rpx 20rpx 0;
-}
-
-/* 内容层：背景不透明覆盖操作区，默认原位；展开时左移 180rpx 露出操作区 */
-.swipe-content {
-  position: relative;
-  z-index: 1;
-  background: #fffdf7;
-  transition: transform 0.2s ease;
-  transform: translateX(0);
-}
-
-.swipe-open {
-  transform: translateX(-180rpx);
-}
-
 .task-card {
   padding: 24rpx;
 }
