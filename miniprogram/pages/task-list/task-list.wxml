@@ -1,16 +1,33 @@
-<!-- 识别任务列表页：正在识别 + 识别历史 -->
+<!-- 识别任务列表页：正在识别 + 识别历史；任务卡片支持左滑删除（入库中仅提示） -->
 <view class="page task-list">
   <view wx:if="{{loading}}" class="empty"><text class="empty-icon">⏳</text><view>加载中…</view></view>
 
   <block wx:else>
     <view class="section-title">正在识别</view>
     <view wx:if="{{running.length}}" class="task-group">
-      <view wx:for="{{running}}" wx:key="taskId" class="card task-card" data-id="{{item.taskId}}" bindtap="openTask">
-        <view class="task-card-head">
-          <text class="task-batch">🕐 {{item.batchName}}</text>
-          <text class="task-status task-status-running">{{item.statusText}}</text>
+      <!-- 左滑容器：内容层可位移露出右侧操作区（删除/正在入库中） -->
+      <view wx:for="{{running}}" wx:key="taskId" class="swipe-wrap">
+        <!-- 右侧操作区：入库中显示提示，其余显示删除按钮 -->
+        <view class="swipe-actions">
+          <view wx:if="{{item.swipeRunning}}" class="swipe-tip">正在入库中</view>
+          <view wx:else class="swipe-del" data-id="{{item.taskId}}" catchtap="onDeleteTask">删除</view>
         </view>
-        <view class="muted">进度 {{item.progressText}} · {{item.timeText}}</view>
+        <!-- 内容层：跟随左滑位移；点击进详情 -->
+        <view
+          class="card task-card swipe-content {{openedTaskId === item.taskId ? 'swipe-open' : ''}}"
+          data-id="{{item.taskId}}"
+          bindtap="openTask"
+          bindtouchstart="onTaskTouchStart"
+          bindtouchend="onTaskTouchEnd"
+          data-taskid="{{item.taskId}}"
+          data-running="{{item.swipeRunning}}"
+        >
+          <view class="task-card-head">
+            <text class="task-batch">🕐 {{item.batchName}}</text>
+            <text class="task-status task-status-running">{{item.statusText}}</text>
+          </view>
+          <view class="muted">进度 {{item.progressText}} · {{item.timeText}}</view>
+        </view>
       </view>
     </view>
     <view wx:else class="empty">
@@ -20,12 +37,26 @@
 
     <view class="section-title">识别历史</view>
     <view wx:if="{{history.length}}" class="task-group">
-      <view wx:for="{{history}}" wx:key="taskId" class="card task-card" data-id="{{item.taskId}}" bindtap="openTask">
-        <view class="task-card-head">
-          <text class="task-batch">🕐 {{item.batchName}}</text>
-          <text class="task-status">{{item.statusText}}</text>
+      <view wx:for="{{history}}" wx:key="taskId" class="swipe-wrap">
+        <view class="swipe-actions">
+          <view wx:if="{{item.swipeRunning}}" class="swipe-tip">正在入库中</view>
+          <view wx:else class="swipe-del" data-id="{{item.taskId}}" catchtap="onDeleteTask">删除</view>
         </view>
-        <view class="muted">结果 {{item.progressText}} · {{item.timeText}}</view>
+        <view
+          class="card task-card swipe-content {{openedTaskId === item.taskId ? 'swipe-open' : ''}}"
+          data-id="{{item.taskId}}"
+          bindtap="openTask"
+          bindtouchstart="onTaskTouchStart"
+          bindtouchend="onTaskTouchEnd"
+          data-taskid="{{item.taskId}}"
+          data-running="{{item.swipeRunning}}"
+        >
+          <view class="task-card-head">
+            <text class="task-batch">🕐 {{item.batchName}}</text>
+            <text class="task-status">{{item.statusText}}</text>
+          </view>
+          <view class="muted">结果 {{item.progressText}} · {{item.timeText}}</view>
+        </view>
       </view>
     </view>
     <view wx:else class="empty">

@@ -1,0 +1,9 @@
+{
+  "name": "deleteBatchTask",
+  "version": "1.0.0",
+  "description": "删除识别任务记录（仅删 batch_tasks，不删云存储照片与指纹）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
