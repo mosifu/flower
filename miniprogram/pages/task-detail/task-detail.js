@@ -210,6 +210,11 @@ Page({
         const res = await util.callFunction('recognizeFlower', { fileID });
         wx.hideLoading();
         if (res.duplicate) {
+          // 新照片之前识别为未识别出植物：复用识别结论标记 nonPlant（提示「未识别出花朵」而非「重复照片」）
+          if (res.hit && res.hit.nonPlant) {
+            this.updateItemFromResult(idx, { hit: false, candidates: [] }, fileID, false);
+            return;
+          }
           // 新照片仍重复：标记重复（保留新 fileID 供继续识别用）
           this.updateItemFromResult(idx, null, fileID, true);
           return;

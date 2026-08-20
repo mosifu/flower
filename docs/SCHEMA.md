@@ -75,12 +75,13 @@ token: string
 expireAt: number      # 过期时间戳（提前 60s 失效）
 ```
 
-### photo_hashes（MD5 图片指纹，永久去重）
+### photo_hashes（MD5 图片指纹，识别留痕 + 永久去重）
 ```
 _id: "{openid}_{md5}"  # 幂等键，同一图重复写入覆盖
 openid: string
 md5: string            # 图片内容 MD5（前端固定参数压缩后字节一致）
 speciesId: string      # 识别命中的花种 id；未命中为空串
+nonPlant: boolean      # 是否未识别出植物（!hit：百度有返回但未匹配知识库）；重复上传时前端据此提示「未识别出花朵」而非「重复照片」
 createdAt: number      # 写入时间，cleanupData 按此清理（保留 90 天）
 ```
 

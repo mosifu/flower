@@ -84,9 +84,57 @@ Page({
       fileID = await util.uploadImage(tempPath);
       const res = await util.callFunction('recognizeFlower', { fileID });
       if (res.duplicate) {
-        // MD5 永久去重（方案 A）：命中历史指纹，未消耗限流次数，询问是否仍要识别
+        // MD5 永久去重（方案 A）：命中历史指纹，未消耗限流次数
         const hit = res.hit || {};
         wx.hideLoading();
+
+        // 未识别出植物的重复照片：直接复用历史结论（不弹「重复照片」、不消耗次数、不再调百度）
+        if (hit.nonPlant) {
+          if (this._batchRetryIndex !== undefined && this._batchRetryIndex >= 0) {
+            // 批量重传/重试场景：回填清单该张为「未识别出花朵」
+            const idx = this._batchRetryIndex;
+            this._batchRetryIndex = -1;
+            const list = this.data.batchList.slice();
+            list[idx] = Object.assign({}, list[idx], {
+              status: 'fail',
+              failMsg: '暂未识别出花朵',
+              nonPlant: true,
+              duplicate: false,
+              dupName: '',
+              tempPath, // 更新预览为本次照片（重新上传后）
+              fileID
+            });
+            this.setData({
+              phase: 'batch_result',
+              batchList: list,
+              remaining: res.remaining,
+              limit: res.limit
+            });
+            this.createIdentifiedTask(); // 识别有记录：同步识别任务
+            util.showToast('暂未识别出花朵，请换一张照片试试');
+            return;
+          }
+          // 单图：直接进入非植物结果视图（保存照片/重新上传）
+          this.setData({
+            phase: 'result',
+            previewPath: tempPath,
+            photoFileID: fileID,
+            candidates: [],
+            hit: false,
+            nonPlant: true,
+            selectedIndex: 0,
+            resultMsg: '暂未识别出花朵，请重新上传一张花的清晰照片',
+            remaining: res.remaining,
+            limit: res.limit,
+            // 记录本次图片路径与时间，供 60 秒同图去重判断
+            lastPath: tempPath,
+            lastTime: now
+          });
+          this.createSingleIdentifiedTask(); // 识别有记录：非植物也回填任务
+          return;
+        }
+
+        // 其余重复照片：询问是否仍要识别
         wx.showModal({
           title: '这张照片识别过',
           content: hit.speciesId
@@ -207,18 +255,31 @@ Page({
         fileID = await util.uploadImage(tempPaths[i]);
         const res = await util.callFunction('recognizeFlower', { fileID });
         if (res.duplicate) {
-          // MD5 重复：批量中不弹窗打断，标记重复并跳过（不消耗次数）
+          // MD5 重复：批量中不弹窗打断，不消耗次数
           const hit = res.hit || {};
           const list = this.data.batchList.slice();
-          list[i] = Object.assign({}, list[i], {
-            status: 'fail',
-            failMsg: '这张照片之前识别过',
-            duplicate: true,
-            dupName: hit.cnName || '',
-            fileID
-          });
+          if (hit.nonPlant) {
+            // 之前识别为未识别出植物：复用历史结论（不再调百度），标记为「未识别出花朵」而非重复照片
+            list[i] = Object.assign({}, list[i], {
+              status: 'fail',
+              failMsg: '暂未识别出花朵',
+              nonPlant: true,
+              duplicate: false,
+              dupName: '',
+              fileID
+            });
+          } else {
+            // 其余重复照片：标记重复并跳过
+            list[i] = Object.assign({}, list[i], {
+              status: 'fail',
+              failMsg: '这张照片之前识别过',
+              duplicate: true,
+              dupName: hit.cnName || '',
+              fileID
+            });
+          }
           this.setData({ batchList: list });
-          this.createIdentifiedTask(); // 识别有记录：重复张也回填任务
+          this.createIdentifiedTask(); // 识别有记录：重复/非植物张也回填任务
           continue;
         }
         this.handleBatchResult(i, res, fileID);

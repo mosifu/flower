@@ -11,8 +11,10 @@
  * - 识别失败时自动删除已上传的图片文件，避免孤儿文件
  * - 知识库列表 10 分钟实例内存缓存，减少每次识别的数据库查询
  * - 百度 Token 刷新用 Promise 锁，避免并发刷新风暴
- * - 图片 MD5 指纹永久去重（方案 A）：识别前查 photo_hashes，重复图不消耗限流次数；
- *   识别成功（百度正常返回）后写入指纹；force=true 跳过查重（用户确认仍要识别）
+ * - 图片 MD5 指纹识别留痕（方案 A 演进）：识别前查 photo_hashes，重复图不消耗限流次数；
+ *   识别成功（百度正常返回）后写入指纹，识别结果一并留痕：命中花种记 speciesId，
+ *   未识别出植物记 nonPlant=true（重复上传时前端直接提示「未识别出花朵」而非「重复照片」）；
+ *   force=true 跳过查重（用户确认仍要识别）
  *
  * 复用说明：图片安全检测方式与 base64 识别链路参考自
  * dengcao/AI-Intelligent-Recognition（Apache-2.0），见 NOTICE.md。
@@ -322,19 +324,22 @@ async function findDuplicate(openid, md5) {
 }
 
 /**
- * 写入图片指纹（幂等：固定 _id = openid_md5，重复写入覆盖）
+ * 写入图片指纹（幂等：固定 _id = openid_md5，重复写入覆盖）；
+ * 识别结果留痕：命中花种记录 speciesId，未识别出植物（百度有返回但未匹配知识库）记录 nonPlant=true，
+ * 供重复上传时前端直接提示「未识别出花朵」而非「重复照片」
  * @param {string} openid - 用户唯一标识
  * @param {string} md5 - 图片内容 MD5
  * @param {string} speciesId - 识别命中的花种 id（未命中传空串）
+ * @param {boolean} nonPlant - 是否未识别出植物（!hit）
  * @returns {Promise<void>} 写入失败仅告警，不阻断主流程
  */
-async function savePhotoHash(openid, md5, speciesId) {
+async function savePhotoHash(openid, md5, speciesId, nonPlant) {
   try {
     await db
       .collection('photo_hashes')
       .doc(`${openid}_${md5}`)
       .set({
-        data: { openid, md5, speciesId: speciesId || '', createdAt: Date.now() }
+        data: { openid, md5, speciesId: speciesId || '', nonPlant: !!nonPlant, createdAt: Date.now() }
       });
   } catch (e) {
     console.warn('写入照片指纹失败:', openid, md5, e);
@@ -410,10 +415,31 @@ exports.main = async (event) => {
             .catch(() => null);
           cnName = sp && sp.data ? sp.data.cnName : '';
         }
+        // 附带今日剩余次数（未识别出植物的重复图前端直接进结果页，配额条需要展示）
+        let remaining = 0;
+        try {
+          const rateDoc = await db
+            .collection('rate_limits')
+            .doc(`${OPENID}_${todayStr()}`)
+            .get()
+            .catch(() => null);
+          const count = (rateDoc && rateDoc.data && rateDoc.data.count) || 0;
+          remaining = Math.max(0, DAILY_LIMIT - count);
+        } catch (e) {
+          console.warn('查重命中读取剩余次数失败:', e);
+        }
         return {
           ok: true,
           duplicate: true,
-          hit: { speciesId: dup.speciesId, cnName, createdAt: dup.createdAt }
+          remaining,
+          limit: DAILY_LIMIT,
+          hit: {
+            speciesId: dup.speciesId,
+            cnName,
+            createdAt: dup.createdAt,
+            // 老数据无 nonPlant 字段时按 speciesId 是否为空兜底（空=未识别出植物）
+            nonPlant: !!dup.nonPlant || !dup.speciesId
+          }
         };
       }
     }
@@ -480,9 +506,11 @@ exports.main = async (event) => {
     });
 
     const hit = candidates.some((c) => c.species);
-    // 7. 写入指纹（识别成功即写：命中花种记录 speciesId，未命中记空，防止同一张图反复消耗次数）
+    // 7. 写入指纹（识别成功即写，防止同一张图反复消耗次数）
+    //    识别结果留痕：命中花种记录 speciesId；未识别出植物（!hit）记录 nonPlant=true，
+    //    供重复上传时前端直接提示「未识别出花朵」而非「重复照片」
     const hitSpecies = candidates.find((c) => c.species);
-    await savePhotoHash(OPENID, md5, hitSpecies ? hitSpecies.species._id : '');
+    await savePhotoHash(OPENID, md5, hitSpecies ? hitSpecies.species._id : '', !hit);
 
     return {
       ok: true,
