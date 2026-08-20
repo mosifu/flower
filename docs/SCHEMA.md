@@ -81,7 +81,7 @@ _id: "{openid}_{md5}"  # 幂等键，同一图重复写入覆盖
 openid: string
 md5: string            # 图片内容 MD5（前端固定参数压缩后字节一致）
 speciesId: string      # 识别命中的花种 id；未命中为空串
-nonPlant: boolean      # 是否未识别出植物（!hit：百度有返回但未匹配知识库）；重复上传时前端据此提示「未识别出花朵」而非「重复照片」
+nonPlant: boolean      # 是否未识别出植物（百度无返回候选才算）；有候选但未匹配知识库=图鉴未收录不记此标记；重复上传命中时前端弹「重新识别」确认
 createdAt: number      # 写入时间，cleanupData 按此清理（保留 90 天）
 ```
 

@@ -13,7 +13,8 @@
  * - 百度 Token 刷新用 Promise 锁，避免并发刷新风暴
  * - 图片 MD5 指纹识别留痕（方案 A 演进）：识别前查 photo_hashes，重复图不消耗限流次数；
  *   识别成功（百度正常返回）后写入指纹，识别结果一并留痕：命中花种记 speciesId，
- *   未识别出植物记 nonPlant=true（重复上传时前端直接提示「未识别出花朵」而非「重复照片」）；
+ *   真·未识别出植物（百度无候选）记 nonPlant=true（重复上传命中时前端弹「重新识别」确认后 force 覆盖）；
+ *   有候选但未匹配知识库 = 图鉴未收录，不判 nonPlant（走生成入口）；
  *   force=true 跳过查重（用户确认仍要识别）
  *
  * 复用说明：图片安全检测方式与 base64 识别链路参考自
@@ -325,8 +326,8 @@ async function findDuplicate(openid, md5) {
 
 /**
  * 写入图片指纹（幂等：固定 _id = openid_md5，重复写入覆盖）；
- * 识别结果留痕：命中花种记录 speciesId，未识别出植物（百度有返回但未匹配知识库）记录 nonPlant=true，
- * 供重复上传时前端直接提示「未识别出花朵」而非「重复照片」
+ * 识别结果留痕：命中花种记录 speciesId，真·未识别出植物（百度无候选）记录 nonPlant=true，
+ * 重复上传命中 nonPlant 指纹时前端弹「重新识别」确认后 force 覆盖指纹
  * @param {string} openid - 用户唯一标识
  * @param {string} md5 - 图片内容 MD5
  * @param {string} speciesId - 识别命中的花种 id（未命中传空串）
@@ -506,15 +507,19 @@ exports.main = async (event) => {
     });
 
     const hit = candidates.some((c) => c.species);
+    // 未识别出植物判定（方向 C 修正）：百度没有任何返回候选（results 为空）才算「未识别出植物」；
+    // 有候选但未匹配知识库 = 图鉴未收录（可走生成入口），不再误判为 nonPlant、也不写 nonPlant 指纹
+    const isNonPlant = !results.length;
     // 7. 写入指纹（识别成功即写，防止同一张图反复消耗次数）
-    //    识别结果留痕：命中花种记录 speciesId；未识别出植物（!hit）记录 nonPlant=true，
-    //    供重复上传时前端直接提示「未识别出花朵」而非「重复照片」
+    //    识别结果留痕：命中花种记录 speciesId；真·未识别出植物（百度无候选）记录 nonPlant=true，
+    //    重复上传时前端弹「重新识别」确认后 force 覆盖指纹
     const hitSpecies = candidates.find((c) => c.species);
-    await savePhotoHash(OPENID, md5, hitSpecies ? hitSpecies.species._id : '', !hit);
+    await savePhotoHash(OPENID, md5, hitSpecies ? hitSpecies.species._id : '', isNonPlant);
 
     return {
       ok: true,
       hit,
+      nonPlant: isNonPlant,
       candidates,
       remaining: rl.remaining,
       limit: DAILY_LIMIT

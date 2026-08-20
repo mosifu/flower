@@ -88,49 +88,76 @@ Page({
         const hit = res.hit || {};
         wx.hideLoading();
 
-        // 未识别出植物的重复照片：直接复用历史结论（不弹「重复照片」、不消耗次数、不再调百度）
+        // 未识别出植物的重复照片：不直接复用结论——弹「重新识别」确认框（方向 C），
+        // 确认则 force 重识别并覆盖指纹（消耗 1 次今日次数），取消则按历史结论展示非植物结果
         if (hit.nonPlant) {
-          if (this._batchRetryIndex !== undefined && this._batchRetryIndex >= 0) {
-            // 批量重传/重试场景：回填清单该张为「未识别出花朵」
-            const idx = this._batchRetryIndex;
-            this._batchRetryIndex = -1;
-            const list = this.data.batchList.slice();
-            list[idx] = Object.assign({}, list[idx], {
-              status: 'fail',
-              failMsg: '暂未识别出花朵',
-              nonPlant: true,
-              duplicate: false,
-              dupName: '',
-              tempPath, // 更新预览为本次照片（重新上传后）
-              fileID
-            });
+          const applyNonPlant = () => {
+            if (this._batchRetryIndex !== undefined && this._batchRetryIndex >= 0) {
+              // 批量重传/重试场景：取消后回填清单该张为「未识别出花朵」
+              const idx = this._batchRetryIndex;
+              this._batchRetryIndex = -1;
+              const list = this.data.batchList.slice();
+              list[idx] = Object.assign({}, list[idx], {
+                status: 'fail',
+                failMsg: '暂未识别出花朵',
+                nonPlant: true,
+                duplicate: false,
+                dupName: '',
+                tempPath, // 更新预览为本次照片（重新上传后）
+                fileID
+              });
+              this.setData({
+                phase: 'batch_result',
+                batchList: list,
+                remaining: res.remaining,
+                limit: res.limit
+              });
+              this.createIdentifiedTask(); // 识别有记录：同步识别任务
+              util.showToast('暂未识别出花朵，请换一张照片试试');
+              return;
+            }
+            // 单图：直接进入非植物结果视图（保存照片/重新上传）
             this.setData({
-              phase: 'batch_result',
-              batchList: list,
+              phase: 'result',
+              previewPath: tempPath,
+              photoFileID: fileID,
+              candidates: [],
+              hit: false,
+              nonPlant: true,
+              selectedIndex: 0,
+              resultMsg: '暂未识别出花朵，请重新上传一张花的清晰照片',
               remaining: res.remaining,
-              limit: res.limit
+              limit: res.limit,
+              // 记录本次图片路径与时间，供 60 秒同图去重判断
+              lastPath: tempPath,
+              lastTime: now
             });
-            this.createIdentifiedTask(); // 识别有记录：同步识别任务
-            util.showToast('暂未识别出花朵，请换一张照片试试');
-            return;
-          }
-          // 单图：直接进入非植物结果视图（保存照片/重新上传）
-          this.setData({
-            phase: 'result',
-            previewPath: tempPath,
-            photoFileID: fileID,
-            candidates: [],
-            hit: false,
-            nonPlant: true,
-            selectedIndex: 0,
-            resultMsg: '暂未识别出花朵，请重新上传一张花的清晰照片',
-            remaining: res.remaining,
-            limit: res.limit,
-            // 记录本次图片路径与时间，供 60 秒同图去重判断
-            lastPath: tempPath,
-            lastTime: now
+            this.createSingleIdentifiedTask(); // 识别有记录：非植物也回填任务
+          };
+          wx.showModal({
+            title: '重新识别这张照片？',
+            content: '这张照片之前识别为未识别出植物。重新识别会消耗 1 次今日识别次数，是否继续？',
+            confirmText: '重新识别',
+            cancelText: '取消',
+            success: async (r) => {
+              if (!r.confirm) {
+                // 取消：按历史结论展示非植物结果，不消耗次数
+                applyNonPlant();
+                return;
+              }
+              wx.showLoading({ title: '识别中...', mask: true });
+              try {
+                // 用户确认：force=true 跳过查重重新识别（本次消耗次数），服务端覆盖指纹留痕
+                const res2 = await util.callFunction('recognizeFlower', { fileID, force: true });
+                this.handleRecognizeResult(res2, tempPath, now, fileID);
+              } catch (e2) {
+                if (fileID) await util.deleteCloudFile(fileID);
+                util.showToast(e2.message || '识别失败');
+              } finally {
+                wx.hideLoading();
+              }
+            }
           });
-          this.createSingleIdentifiedTask(); // 识别有记录：非植物也回填任务
           return;
         }
 
@@ -361,9 +388,9 @@ Page({
         lowConfidence: typeof c.score === 'number' && c.score < 0.6
       })
     );
-    // 非植物/未识别判定：未命中知识库（hit=false）且候选均无 species（如百度返回「非植物」）
-    // → 标记 nonPlant，提示「暂未识别出花朵」，不入库、不显示生成入口
-    const isNonPlant = !res.hit && !candidates.some((c) => c.species);
+    // 未识别出植物判定（方向 C 修正）：以服务端 nonPlant 为准（百度无候选才算；
+    // 有候选但未匹配知识库 = 图鉴未收录，显示候选+生成入口，不判 nonPlant）；老版本兜底用「无候选」
+    const isNonPlant = res.nonPlant !== undefined ? !!res.nonPlant : !candidates.length;
     const list = this.data.batchList.slice();
     list[i] = Object.assign({}, list[i], {
       status: isNonPlant ? 'fail' : 'ok',
@@ -406,8 +433,8 @@ Page({
     if (this._batchRetryIndex !== undefined && this._batchRetryIndex >= 0) {
       const idx = this._batchRetryIndex;
       this._batchRetryIndex = -1;
-      // 非植物判定：未命中且候选均无 species
-      const isNonPlant = !res.hit && !candidates.some((c) => c.species);
+      // 未识别出植物判定（方向 C）：以服务端 nonPlant 为准（百度无候选才算）；老版本兜底用「无候选」
+      const isNonPlant = res.nonPlant !== undefined ? !!res.nonPlant : !candidates.length;
       const list = this.data.batchList.slice();
       list[idx] = Object.assign({}, list[idx], {
         status: isNonPlant ? 'fail' : 'ok',
@@ -435,8 +462,8 @@ Page({
     }
     // 默认选中第一个命中知识库的候选，避免用户选到未收录项
     const firstHit = candidates.findIndex((c) => c.species);
-    // 非植物判定：未命中且候选均无 species（如百度返回「非植物」）
-    const isNonPlant = !res.hit && !candidates.some((c) => c.species);
+    // 未识别出植物判定（方向 C）：以服务端 nonPlant 为准（百度无候选才算）；老版本兜底用「无候选」
+    const isNonPlant = res.nonPlant !== undefined ? !!res.nonPlant : !candidates.length;
     this.setData({
       phase: 'result',
       photoFileID: fileID,

@@ -229,9 +229,32 @@ Page({
         const res = await util.callFunction('recognizeFlower', { fileID });
         wx.hideLoading();
         if (res.duplicate) {
-          // 新照片之前识别为未识别出植物：复用识别结论标记 nonPlant（提示「未识别出花朵」而非「重复照片」）
+          // 新照片之前识别为未识别出植物：弹「重新识别」确认（方向 C）——
+          // 确认则 force 重识别覆盖指纹（消耗 1 次今日次数），取消则按历史结论标记 nonPlant
           if (res.hit && res.hit.nonPlant) {
-            this.updateItemFromResult(idx, { hit: false, candidates: [] }, fileID, false);
+            wx.showModal({
+              title: '重新识别这张照片？',
+              content: '这张照片之前识别为未识别出植物。重新识别会消耗 1 次今日识别次数，是否继续？',
+              confirmText: '重新识别',
+              cancelText: '取消',
+              success: async (r) => {
+                if (!r.confirm) {
+                  // 取消：按历史结论标记 nonPlant，不消耗次数
+                  this.updateItemFromResult(idx, { hit: false, candidates: [] }, fileID, false);
+                  return;
+                }
+                wx.showLoading({ title: '识别中...', mask: true });
+                try {
+                  // 用户确认：force=true 跳过查重重新识别（本次消耗次数），服务端覆盖指纹留痕
+                  const res2 = await util.callFunction('recognizeFlower', { fileID, force: true });
+                  this.updateItemFromResult(idx, res2, fileID, false);
+                } catch (err) {
+                  util.showToast(err.message || '识别失败');
+                } finally {
+                  wx.hideLoading();
+                }
+              }
+            });
             return;
           }
           // 新照片仍重复：标记重复（保留新 fileID 供继续识别用）
@@ -320,11 +343,11 @@ Page({
         failMsg: '这张照片之前识别过'
       });
     } else if (res) {
-      // 非植物判定：未命中且候选均无 species
+      // 未识别出植物判定（方向 C）：以服务端 nonPlant 为准（百度无候选才算）；老版本兜底用「无候选」
       const candidates = (res.candidates || []).map((c) =>
         Object.assign({}, c, { lowConfidence: typeof c.score === 'number' && c.score < 0.6 })
       );
-      const isNonPlant = !res.hit && !candidates.some((c) => c.species);
+      const isNonPlant = res.nonPlant !== undefined ? !!res.nonPlant : !candidates.length;
       items[idx] = Object.assign({}, it, {
         fileID: fileID || it.fileID,
         itemStatus: isNonPlant ? 'nonPlant' : 'identified',
